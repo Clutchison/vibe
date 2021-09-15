@@ -9,9 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 public enum Command {
-    JENGA("jenga", "j"),
-    FILE_SCRAPE("scrape"),
-    UTIL("util", "u"),
+    PING("ping")
     ;
 
     @Getter

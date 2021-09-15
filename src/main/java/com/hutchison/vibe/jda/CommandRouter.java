@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 public class CommandRouter implements ApplicationContextAware {
 
     ApplicationContext applicationContext;
-    static final String basePackage = "com.hutchison.swanbot";
+    static final String basePackage = "com.hutchison.vibe";
     private Map<Command, VibeRouter> routers;
 
     @PostConstruct
@@ -40,7 +40,7 @@ public class CommandRouter implements ApplicationContextAware {
     public void route(CommandMessage commandMessage, MessageReceivedEvent event) {
         VibeRouter router = routers.get(commandMessage.getCommand());
         if (router != null) router.route(commandMessage, event);
-        else System.out.println("Unhandled command: " + commandMessage.toString());
+        else System.out.println("Unhandled command: " + commandMessage);
     }
 
     private Set<VibeRouter> getRouters() {

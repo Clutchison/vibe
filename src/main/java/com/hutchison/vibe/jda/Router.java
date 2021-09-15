@@ -1,7 +1,7 @@
 package com.hutchison.vibe.jda;
 
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Indexed;
+import org.springframework.stereotype.Service;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -13,7 +13,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Indexed
-@Component
+@Service
 public @interface Router {
     Command value();
 }

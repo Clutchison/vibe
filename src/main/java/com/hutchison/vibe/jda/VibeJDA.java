@@ -24,12 +24,9 @@ import static net.dv8tion.jda.api.utils.cache.CacheFlag.VOICE_STATE;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class VibeJDA {
     static final Set<GatewayIntent> INTENTS = Set.of(
-//            GUILD_MEMBERS,
-//            GUILD_WEBHOOKS,
-//            GUILD_INVITES,
             GUILD_MESSAGES,
             DIRECT_MESSAGES,
-            GUILD_PRESENCES
+            GUILD_VOICE_STATES
     );
     static final Set<CacheFlag> DISABLED_CACHES = Set.of(
             VOICE_STATE,
