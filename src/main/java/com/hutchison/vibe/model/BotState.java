@@ -35,6 +35,16 @@ public class BotState {
         }
     }
 
+    public void disconnect(MessageReceivedEvent event) {
+        Optional<VoiceChannel> channel = getChannel(event);
+        if (channel.isPresent()) {
+            AudioManager audioManager = event.getGuild().getAudioManager();
+            audioManager.closeAudioConnection();
+        } else {
+            event.getChannel().sendMessage("User not in voice channel").queue();
+        }
+    }
+
     private Optional<VoiceChannel> getChannel(MessageReceivedEvent event) {
         if (event.getMember() == null ||
                 event.getMember().getVoiceState() == null ||
