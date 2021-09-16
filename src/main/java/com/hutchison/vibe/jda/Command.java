@@ -10,7 +10,8 @@ import java.util.Map;
 
 public enum Command {
     PING("ping"),
-    JOIN("join")
+    JOIN("join"),
+    DISCONNECT("disconnect")
     ;
 
     @Getter
