@@ -29,7 +29,6 @@ public class VibeJDA {
             GUILD_VOICE_STATES
     );
     static final Set<CacheFlag> DISABLED_CACHES = Set.of(
-            VOICE_STATE,
             EMOTE
     );
     static final boolean jdaEnabled = true;

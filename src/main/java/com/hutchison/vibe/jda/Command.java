@@ -9,7 +9,8 @@ import java.util.List;
 import java.util.Map;
 
 public enum Command {
-    PING("ping")
+    PING("ping"),
+    JOIN("join")
     ;
 
     @Getter
