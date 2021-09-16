@@ -34,7 +34,7 @@ public class CommandMessage {
         String prefix = "Cannot create command: ";
         if (message == null || message.length() == 0)
             throw new IllegalArgumentException(prefix + "message must not be empty.");
-        if (message.charAt(0) != '!')
+        if (message.charAt(0) != '~')
             throw new IllegalArgumentException(prefix + "message must start with !");
         if (message.length() == 1)
             throw new IllegalArgumentException(prefix + "message does not contain a command");
