@@ -18,12 +18,10 @@ import java.util.Optional;
 @Log4j2
 public class BotState {
 
-    private final VibeJDA jda;
     private final VibeAudioManager vibeAudioManager;
 
     @Autowired
-    public BotState(VibeJDA jda, VibeAudioManager vibeAudioManager) {
-        this.jda = jda;
+    public BotState(VibeAudioManager vibeAudioManager) {
         this.vibeAudioManager = vibeAudioManager;
     }
 

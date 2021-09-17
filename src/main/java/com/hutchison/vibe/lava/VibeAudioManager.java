@@ -12,12 +12,11 @@ import javax.annotation.PostConstruct;
 @Component
 public class VibeAudioManager extends DefaultAudioPlayerManager {
 
+    private final AudioPlayer player;
     @Getter
-    private TrackScheduler trackScheduler;
-
-    private AudioPlayer player;
+    private final TrackScheduler trackScheduler;
     @Getter
-    private VibeAudioSendHandler vibeAudioSendHandler;
+    private final VibeAudioSendHandler vibeAudioSendHandler;
 
     public VibeAudioManager() {
         this.player = this.createPlayer();
