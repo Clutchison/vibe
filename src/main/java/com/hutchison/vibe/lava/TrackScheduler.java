@@ -22,17 +22,22 @@ public class TrackScheduler extends AudioEventAdapter {
         player.playTrack(track);
     }
 
+    public String getCurrentTrackTitle() {
+        return player.getPlayingTrack().getInfo().title;
+    }
+
+    public void togglePause() {
+        player.setPaused(!player.isPaused());
+    }
 
     @Override
     public void onPlayerPause(AudioPlayer player) {
         log.info("Player Paused Track");
-        super.onPlayerPause(player);
     }
 
     @Override
     public void onPlayerResume(AudioPlayer player) {
         log.info("Player Resumed Track");
-        super.onPlayerResume(player);
     }
 
     @Override
@@ -43,25 +48,21 @@ public class TrackScheduler extends AudioEventAdapter {
     @Override
     public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
         log.info("Track Ended: " + endReason.name());
-        super.onTrackEnd(player, track, endReason);
     }
 
     @Override
     public void onTrackException(AudioPlayer player, AudioTrack track, FriendlyException exception) {
         log.error("Track Exception", exception);
-        super.onTrackException(player, track, exception);
     }
 
     @Override
     public void onTrackStuck(AudioPlayer player, AudioTrack track, long thresholdMs) {
         log.info("Track Stuck");
-        super.onTrackStuck(player, track, thresholdMs);
     }
 
     @Override
     public void onTrackStuck(AudioPlayer player, AudioTrack track, long thresholdMs, StackTraceElement[] stackTrace) {
         log.info("Track Stuck");
-        super.onTrackStuck(player, track, thresholdMs, stackTrace);
     }
 
     private void logTrackInfo(AudioTrackInfo info) {

@@ -1,7 +1,6 @@
 package com.hutchison.vibe.model;
 
 import com.hutchison.vibe.jda.CommandMessage;
-import com.hutchison.vibe.jda.VibeJDA;
 import com.hutchison.vibe.lava.VibeAudioManager;
 import com.hutchison.vibe.lava.handlers.VibeAudioLoadResultHandler;
 import lombok.extern.log4j.Log4j2;
@@ -59,12 +58,17 @@ public class BotState {
                 audioManager.setSendingHandler(vibeAudioManager.getVibeAudioSendHandler());
                 String id = commandMessage.getSubCommand() != null && !commandMessage.getSubCommand().isEmpty() ? commandMessage.getSubCommand() : "LpC0SKU6O00"; //Default to one of the best songs of all time!
                 vibeAudioManager.loadItem(id, new VibeAudioLoadResultHandler(vibeAudioManager));
+                event.getChannel().sendMessage("Playing " + vibeAudioManager.getTrackScheduler().getCurrentTrackTitle()).queue();
             } catch (InsufficientPermissionException ex) {
                 event.getChannel().sendMessage("Vibe does not have permissions to join that channel.").queue();
             }
         } else {
             event.getChannel().sendMessage("User not in voice channel").queue();
         }
+    }
+
+    public void togglePause(CommandMessage commandMessage, MessageReceivedEvent event) {
+        vibeAudioManager.getTrackScheduler().togglePause();
     }
 
     private Optional<VoiceChannel> getChannel(MessageReceivedEvent event) {

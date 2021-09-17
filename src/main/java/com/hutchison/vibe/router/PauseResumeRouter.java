@@ -8,25 +8,26 @@ import com.hutchison.vibe.model.BotState;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static com.hutchison.vibe.jda.Command.PLAY;
+import static com.hutchison.vibe.jda.Command.PAUSE_RESUME;
 
-@Router(PLAY)
-public class PlayRouter extends VibeRouter {
+@Router(PAUSE_RESUME)
+public class PauseResumeRouter extends VibeRouter {
 
     private final BotState botState;
 
     @Autowired
-    public PlayRouter(BotState botState) {
+    public PauseResumeRouter(BotState botState) {
         this.botState = botState;
     }
 
     @Route()
-    public void play(CommandMessage commandMessage, MessageReceivedEvent event) {
-        botState.play(commandMessage, event);
+    public void togglePause(CommandMessage commandMessage, MessageReceivedEvent event) {
+        botState.togglePause(commandMessage, event);
     }
+
 
     @Override
     protected void info(CommandMessage commandMessage, MessageReceivedEvent event) {
-        event.getChannel().sendMessage("Use this command to begin playback of a track.").queue();
+        event.getChannel().sendMessage("Use this command to pause/resume the current track.").queue();
     }
 }
