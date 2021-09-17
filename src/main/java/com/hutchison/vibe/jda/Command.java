@@ -9,7 +9,7 @@ public enum Command {
     JOIN("join"),
     DISCONNECT("disconnect"),
     PLAY("play"),
-    PAUSE("pause", "resume"),
+    PAUSE("pause"),
     RESUME("resume")
     ;
 
