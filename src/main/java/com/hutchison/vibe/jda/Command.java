@@ -9,7 +9,8 @@ public enum Command {
     JOIN("join"),
     DISCONNECT("disconnect"),
     PLAY("play"),
-    PAUSE_RESUME("pause", "resume")
+    PAUSE("pause", "resume"),
+    RESUME("resume")
     ;
 
     @Getter

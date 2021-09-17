@@ -13,6 +13,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
+import static com.hutchison.vibe.jda.Command.PAUSE;
+import static com.hutchison.vibe.jda.Command.RESUME;
+
 @Component
 @Log4j2
 public class BotState {
@@ -68,7 +71,13 @@ public class BotState {
     }
 
     public void togglePause(CommandMessage commandMessage, MessageReceivedEvent event) {
-        vibeAudioManager.getTrackScheduler().togglePause();
+        if(vibeAudioManager.getTrackScheduler().hasCurrentTrack()) {
+            if((!vibeAudioManager.getTrackScheduler().isPaused() && PAUSE.equals(commandMessage.getCommand()) ||
+                    (vibeAudioManager.getTrackScheduler().isPaused() && RESUME.equals(commandMessage.getCommand()))))
+            vibeAudioManager.getTrackScheduler().togglePause();
+        } else {
+            event.getChannel().sendMessage("No track is loaded to pause/resume.").queue();
+        }
     }
 
     private Optional<VoiceChannel> getChannel(MessageReceivedEvent event) {

@@ -8,15 +8,15 @@ import com.hutchison.vibe.model.BotState;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static com.hutchison.vibe.jda.Command.PAUSE_RESUME;
+import static com.hutchison.vibe.jda.Command.PAUSE;
 
-@Router(PAUSE_RESUME)
-public class PauseResumeRouter extends VibeRouter {
+@Router(PAUSE)
+public class PauseRouter extends VibeRouter {
 
     private final BotState botState;
 
     @Autowired
-    public PauseResumeRouter(BotState botState) {
+    public PauseRouter(BotState botState) {
         this.botState = botState;
     }
 

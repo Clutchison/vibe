@@ -30,6 +30,14 @@ public class TrackScheduler extends AudioEventAdapter {
         player.setPaused(!player.isPaused());
     }
 
+    public boolean isPaused() {
+        return player.isPaused();
+    }
+
+    public boolean hasCurrentTrack() {
+        return player.getPlayingTrack() != null;
+    }
+
     @Override
     public void onPlayerPause(AudioPlayer player) {
         log.info("Player Paused Track");
