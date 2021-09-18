@@ -10,7 +10,8 @@ public enum Command {
     DISCONNECT("disconnect"),
     PLAY("play"),
     PAUSE("pause"),
-    RESUME("resume")
+    RESUME("resume"),
+    STOP("stop")
     ;
 
     @Getter

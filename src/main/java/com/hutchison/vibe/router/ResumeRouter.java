@@ -22,7 +22,7 @@ public class ResumeRouter extends VibeRouter {
 
     @Route()
     public void togglePause(CommandMessage commandMessage, MessageReceivedEvent event) {
-        botState.togglePause(commandMessage, event);
+        botState.resume(commandMessage, event);
     }
 
 

@@ -1,6 +1,7 @@
 package com.hutchison.vibe.model;
 
 import com.hutchison.vibe.jda.CommandMessage;
+import com.hutchison.vibe.lava.TrackScheduler;
 import com.hutchison.vibe.lava.VibeAudioManager;
 import com.hutchison.vibe.lava.handlers.VibeAudioLoadResultHandler;
 import lombok.extern.log4j.Log4j2;
@@ -12,9 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
-
-import static com.hutchison.vibe.jda.Command.PAUSE;
-import static com.hutchison.vibe.jda.Command.RESUME;
+import java.util.concurrent.Future;
 
 @Component
 @Log4j2
@@ -59,8 +58,10 @@ public class BotState {
             try {
                 audioManager.openAudioConnection(channel.get());
                 audioManager.setSendingHandler(vibeAudioManager.getVibeAudioSendHandler());
-                String id = commandMessage.getSubCommand() != null && !commandMessage.getSubCommand().isEmpty() ? commandMessage.getSubCommand() : "LpC0SKU6O00"; //Default to one of the best songs of all time!
-                vibeAudioManager.loadItem(id, new VibeAudioLoadResultHandler(vibeAudioManager));
+                String id = !commandMessage.getArgs().isEmpty() ? commandMessage.getArgs().get(0) : "LpC0SKU6O00"; //Default to one of the best songs of all time!
+                Future<Void> loaded = vibeAudioManager.loadItem(id, new VibeAudioLoadResultHandler(vibeAudioManager));
+                //This while ensures that the given track is loaded when the scheduler attempts to send the Track Title in the response.
+                while(!loaded.isDone()){}
                 event.getChannel().sendMessage("Playing " + vibeAudioManager.getTrackScheduler().getCurrentTrackTitle()).queue();
             } catch (InsufficientPermissionException ex) {
                 event.getChannel().sendMessage("Vibe does not have permissions to join that channel.").queue();
@@ -70,14 +71,26 @@ public class BotState {
         }
     }
 
-    public void togglePause(CommandMessage commandMessage, MessageReceivedEvent event) {
+    public void stop(CommandMessage commandMessage, MessageReceivedEvent event) {
         if(vibeAudioManager.getTrackScheduler().hasCurrentTrack()) {
-            if((!vibeAudioManager.getTrackScheduler().isPaused() && PAUSE.equals(commandMessage.getCommand()) ||
-                    (vibeAudioManager.getTrackScheduler().isPaused() && RESUME.equals(commandMessage.getCommand()))))
-            vibeAudioManager.getTrackScheduler().togglePause();
+            vibeAudioManager.getTrackScheduler().stop();
         } else {
-            event.getChannel().sendMessage("No track is loaded to pause/resume.").queue();
+            event.getChannel().sendMessage("No track is playing to stop.").queue();
         }
+    }
+
+    public void pause(CommandMessage commandMessage, MessageReceivedEvent event) {
+        TrackScheduler scheduler = vibeAudioManager.getTrackScheduler();
+        if(!scheduler.hasCurrentTrack()) return;
+        if(scheduler.isPaused()) return;
+        scheduler.togglePause();
+    }
+
+    public void resume(CommandMessage commandMessage, MessageReceivedEvent event) {
+        TrackScheduler scheduler = vibeAudioManager.getTrackScheduler();
+        if(!scheduler.hasCurrentTrack()) return;
+        if(!scheduler.isPaused()) return;
+        scheduler.togglePause();
     }
 
     private Optional<VoiceChannel> getChannel(MessageReceivedEvent event) {

@@ -20,7 +20,7 @@ public class PlayRouter extends VibeRouter {
         this.botState = botState;
     }
 
-    @Route()
+    @Route("yt")
     public void play(CommandMessage commandMessage, MessageReceivedEvent event) {
         botState.play(commandMessage, event);
     }

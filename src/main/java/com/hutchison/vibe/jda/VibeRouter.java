@@ -1,10 +1,12 @@
 package com.hutchison.vibe.jda;
 
+import lombok.extern.log4j.Log4j2;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 
+@Log4j2
 public abstract class VibeRouter {
 
     public void route(CommandMessage commandMessage, MessageReceivedEvent event) {
