@@ -20,13 +20,13 @@ public class PlayRouter extends SwanRouter {
         this.botState = botState;
     }
 
-    @Route()
+    @Route("yt")
     public void play(CommandMessage commandMessage, MessageReceivedEvent event) {
         botState.play(commandMessage, event);
     }
 
     @Override
     protected void info(CommandMessage commandMessage, MessageReceivedEvent event) {
-
+        event.getChannel().sendMessage("Use this command to begin playback of a track.").queue();
     }
 }
