@@ -11,7 +11,9 @@ public enum Command {
     PLAY("play"),
     PAUSE("pause"),
     RESUME("resume"),
-    STOP("stop")
+    STOP("stop"),
+    QUEUE("queue"),
+    CLEAR("clear")
     ;
 
     @Getter

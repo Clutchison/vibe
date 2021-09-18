@@ -46,6 +46,7 @@ public class BotState {
     public void disconnect(MessageReceivedEvent event) {
         Optional<VoiceChannel> channel = getChannel(event);
         if (channel.isPresent()) {
+            clearQueue(event, true);
             AudioManager audioManager = event.getGuild().getAudioManager();
             audioManager.closeAudioConnection();
         } else {
@@ -67,6 +68,23 @@ public class BotState {
                 while (!loaded.isDone()) {
                     if (Instant.now().isAfter(maxTimeToWait)) break;
                 }
+                event.getChannel().sendMessage("Queued " + vibeAudioManager.getTrackScheduler().getLastQueuedTrackTitle()).queue();
+            } catch (InsufficientPermissionException ex) {
+                event.getChannel().sendMessage("Vibe does not have permissions to join that channel.").queue();
+            }
+        } else {
+            event.getChannel().sendMessage("User not in voice channel").queue();
+        }
+    }
+
+    public void start(CommandMessage commandMessage, MessageReceivedEvent event) {
+        Optional<VoiceChannel> channel = getChannel(event);
+        if (channel.isPresent()) {
+            AudioManager audioManager = event.getGuild().getAudioManager();
+            try {
+                audioManager.openAudioConnection(channel.get());
+                audioManager.setSendingHandler(vibeAudioManager.getVibeAudioSendHandler());
+               vibeAudioManager.getTrackScheduler().start();
                 event.getChannel().sendMessage("Playing " + vibeAudioManager.getTrackScheduler().getCurrentTrackTitle()).queue();
             } catch (InsufficientPermissionException ex) {
                 event.getChannel().sendMessage("Vibe does not have permissions to join that channel.").queue();
@@ -96,6 +114,30 @@ public class BotState {
         if (!scheduler.hasCurrentTrack()) return;
         if (!scheduler.isPaused()) return;
         scheduler.togglePause();
+    }
+
+    private void clearQueue(MessageReceivedEvent event, boolean silent) {
+        Optional<VoiceChannel> channel = getChannel(event);
+        if (channel.isPresent()) {
+            vibeAudioManager.getTrackScheduler().clearQueue();
+            if(!silent) event.getChannel().sendMessage("Queue cleared Successfully.").queue();
+        } else {
+            event.getChannel().sendMessage("User not in voice channel").queue();
+        }
+    }
+
+    public void clearQueue(MessageReceivedEvent event) {
+        clearQueue(event, false);
+    }
+
+    public void sendQueueInfo(CommandMessage commandMessage, MessageReceivedEvent event) {
+        Optional<VoiceChannel> channel = getChannel(event);
+        String queueInfo = vibeAudioManager.getTrackScheduler().getQueueInfo();
+        if (channel.isPresent() && queueInfo != null) {
+            event.getChannel().sendMessage(queueInfo).queue();
+        } else {
+            event.getChannel().sendMessage("Queue is already empty.").queue();
+        }
     }
 
     private Optional<VoiceChannel> getChannel(MessageReceivedEvent event) {
