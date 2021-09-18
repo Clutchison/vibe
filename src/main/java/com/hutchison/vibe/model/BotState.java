@@ -1,7 +1,6 @@
 package com.hutchison.vibe.model;
 
-import com.hutchison.vibe.jda.CommandMessage;
-import com.hutchison.vibe.jda.VibeJDA;
+import com.hutchison.vibe.swan.jda.CommandMessage;
 import com.hutchison.vibe.lava.VibeAudioManager;
 import com.hutchison.vibe.lava.handlers.VibeAudioLoadResultHandler;
 import lombok.extern.log4j.Log4j2;

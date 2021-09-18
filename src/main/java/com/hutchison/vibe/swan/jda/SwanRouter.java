@@ -1,11 +1,11 @@
-package com.hutchison.vibe.jda;
+package com.hutchison.vibe.swan.jda;
 
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 
-public abstract class VibeRouter {
+public abstract class SwanRouter {
 
     public void route(CommandMessage commandMessage, MessageReceivedEvent event) {
         Arrays.stream(this.getClass().getMethods())
