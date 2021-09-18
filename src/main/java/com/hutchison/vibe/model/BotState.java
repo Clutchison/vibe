@@ -12,6 +12,8 @@ import net.dv8tion.jda.api.managers.AudioManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import java.util.concurrent.Future;
 
@@ -61,7 +63,9 @@ public class BotState {
                 String id = !commandMessage.getArgs().isEmpty() ? commandMessage.getArgs().get(0) : "LpC0SKU6O00"; //Default to one of the best songs of all time!
                 Future<Void> loaded = vibeAudioManager.loadItem(id, new VibeAudioLoadResultHandler(vibeAudioManager));
                 //This while ensures that the given track is loaded when the scheduler attempts to send the Track Title in the response.
+                Instant maxTimeToWait = Instant.now().plus(10, ChronoUnit.MINUTES);
                 while (!loaded.isDone()) {
+                    if (Instant.now().isAfter(maxTimeToWait)) break;
                 }
                 event.getChannel().sendMessage("Playing " + vibeAudioManager.getTrackScheduler().getCurrentTrackTitle()).queue();
             } catch (InsufficientPermissionException ex) {
