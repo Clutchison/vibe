@@ -8,25 +8,25 @@ import com.hutchison.vibe.model.BotState;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static com.hutchison.vibe.jda.Command.PLAY;
+import static com.hutchison.vibe.jda.Command.STOP;
 
-@Router(PLAY)
-public class PlayRouter extends VibeRouter {
+@Router(STOP)
+public class StopRouter extends VibeRouter {
 
     private final BotState botState;
 
     @Autowired
-    public PlayRouter(BotState botState) {
+    public StopRouter(BotState botState) {
         this.botState = botState;
     }
 
-    @Route("yt")
-    public void play(CommandMessage commandMessage, MessageReceivedEvent event) {
-        botState.play(commandMessage, event);
+    @Route()
+    public void stop(CommandMessage commandMessage, MessageReceivedEvent event) {
+        botState.stop(commandMessage, event);
     }
 
     @Override
     protected void info(CommandMessage commandMessage, MessageReceivedEvent event) {
-        event.getChannel().sendMessage("Use this command to begin playback of a track.").queue();
+        event.getChannel().sendMessage("Use this command to stop the current playing track.").queue();
     }
 }

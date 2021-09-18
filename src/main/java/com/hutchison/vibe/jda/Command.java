@@ -8,7 +8,10 @@ public enum Command {
     PING("ping"),
     JOIN("join"),
     DISCONNECT("disconnect"),
-    PLAY("play")
+    PLAY("play"),
+    PAUSE("pause"),
+    RESUME("resume"),
+    STOP("stop")
     ;
 
     @Getter
