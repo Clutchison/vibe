@@ -1,5 +1,6 @@
 package com.hutchison.vibe.model;
 
+import com.hutchison.vibe.lava.LoopStatus;
 import com.hutchison.vibe.lava.TrackScheduler;
 import com.hutchison.vibe.lava.VibeAudioManager;
 import com.hutchison.vibe.lava.handlers.VibeAudioLoadResultHandler;
@@ -11,6 +12,7 @@ import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.managers.AudioManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -47,6 +49,7 @@ public class BotState {
         Optional<VoiceChannel> channel = getChannel(event);
         if (channel.isPresent()) {
             clearQueue(event, true);
+            vibeAudioManager.getTrackScheduler().setLoopStatus(LoopStatus.OFF);
             AudioManager audioManager = event.getGuild().getAudioManager();
             audioManager.closeAudioConnection();
         } else {
@@ -77,6 +80,17 @@ public class BotState {
         }
     }
 
+    public void setLoop(CommandMessage commandMessage, MessageReceivedEvent event) {
+        Optional<VoiceChannel> channel = getChannel(event);
+        if (channel.isPresent()) {
+            LoopStatus loopStatus = LoopStatus.valueOf(commandMessage.getSubCommand().toUpperCase());
+            vibeAudioManager.getTrackScheduler().setLoopStatus(loopStatus);
+            event.getChannel().sendMessage("Loop set to " + StringUtils.capitalize(commandMessage.getSubCommand())).queue();
+        } else {
+            event.getChannel().sendMessage("User not in voice channel").queue();
+        }
+    }
+
     public void start(CommandMessage commandMessage, MessageReceivedEvent event) {
         Optional<VoiceChannel> channel = getChannel(event);
         if (channel.isPresent()) {
@@ -84,7 +98,7 @@ public class BotState {
             try {
                 audioManager.openAudioConnection(channel.get());
                 audioManager.setSendingHandler(vibeAudioManager.getVibeAudioSendHandler());
-               vibeAudioManager.getTrackScheduler().start();
+                vibeAudioManager.getTrackScheduler().start();
                 event.getChannel().sendMessage("Playing " + vibeAudioManager.getTrackScheduler().getCurrentTrackTitle()).queue();
             } catch (InsufficientPermissionException ex) {
                 event.getChannel().sendMessage("Vibe does not have permissions to join that channel.").queue();
