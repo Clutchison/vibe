@@ -6,6 +6,7 @@ import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
+import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 
 import java.util.ArrayList;
@@ -20,9 +21,13 @@ public class TrackScheduler extends AudioEventAdapter {
     private List<AudioTrack> queue;
     private int currentTrackIndex;
 
+    @Setter
+    private LoopStatus loopStatus;
+
     public TrackScheduler(AudioPlayer player) {
         this.player = player;
         this.queue = new ArrayList<>();
+        this.loopStatus = LoopStatus.OFF;
     }
 
     public void play(AudioTrack track) {
@@ -109,11 +114,36 @@ public class TrackScheduler extends AudioEventAdapter {
     @Override
     public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
         log.info("Track Ended: " + endReason.name());
-        queue.set(currentTrackIndex, track.makeClone());
-        ListIterator<AudioTrack> it = queue.listIterator(currentTrackIndex + 1);
-        if(it.hasNext() && endReason.mayStartNext) {
-            currentTrackIndex = it.nextIndex();
-            player.playTrack(it.next());
+        AudioTrack clone = track.makeClone();
+        queue.set(currentTrackIndex, clone);
+
+        if(endReason.mayStartNext) {
+            ListIterator<AudioTrack> it;
+            switch (loopStatus) {
+                case TRACK:
+                    player.playTrack(clone);
+                    break;
+                case QUEUE:
+                    it = queue.listIterator(currentTrackIndex + 1);
+                    if(!it.hasNext()) {
+                        it = queue.listIterator();
+                        if(it.hasNext()) {
+                            currentTrackIndex = it.nextIndex();
+                            player.playTrack(it.next());
+                        }
+                    } else {
+                        currentTrackIndex = it.nextIndex();
+                        player.playTrack(it.next());
+                    }
+                    break;
+                case OFF:
+                    it = queue.listIterator(currentTrackIndex + 1);
+                    if(it.hasNext()) {
+                        currentTrackIndex = it.nextIndex();
+                        player.playTrack(it.next());
+                    }
+                    break;
+            }
         }
     }
 
