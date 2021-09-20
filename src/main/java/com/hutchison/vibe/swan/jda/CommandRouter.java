@@ -1,4 +1,4 @@
-package com.hutchison.vibe.jda;
+package com.hutchison.vibe.swan.jda;
 
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
@@ -26,7 +26,7 @@ public class CommandRouter implements ApplicationContextAware {
 
     ApplicationContext applicationContext;
     static final String basePackage = "com.hutchison.vibe";
-    private Map<Command, VibeRouter> routers;
+    private Map<Command, SwanRouter> routers;
 
     @PostConstruct
     private void init() {
@@ -38,12 +38,12 @@ public class CommandRouter implements ApplicationContextAware {
     }
 
     public void route(CommandMessage commandMessage, MessageReceivedEvent event) {
-        VibeRouter router = routers.get(commandMessage.getCommand());
+        SwanRouter router = routers.get(commandMessage.getCommand());
         if (router != null) router.route(commandMessage, event);
         else System.out.println("Unhandled command: " + commandMessage);
     }
 
-    private Set<VibeRouter> getRouters() {
+    private Set<SwanRouter> getRouters() {
         BeanDefinitionRegistry bdr = new SimpleBeanDefinitionRegistry();
         ClassPathBeanDefinitionScanner s = new ClassPathBeanDefinitionScanner(bdr);
         TypeFilter tf = new AnnotationTypeFilter(Router.class);
@@ -52,7 +52,7 @@ public class CommandRouter implements ApplicationContextAware {
         s.addIncludeFilter(tf);
         s.scan(basePackage);
         return Arrays.stream(bdr.getBeanDefinitionNames())
-                .map(cn -> (VibeRouter) applicationContext.getBean(cn))
+                .map(cn -> (SwanRouter) applicationContext.getBean(cn))
                 .collect(Collectors.toSet());
     }
 

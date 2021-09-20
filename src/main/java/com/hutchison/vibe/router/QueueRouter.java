@@ -6,28 +6,25 @@ import com.hutchison.vibe.swan.jda.Route;
 import com.hutchison.vibe.swan.jda.Router;
 import com.hutchison.vibe.swan.jda.SwanRouter;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import org.springframework.beans.factory.annotation.Autowired;
 
-import static com.hutchison.vibe.swan.jda.Command.RESUME;
+import static com.hutchison.vibe.swan.jda.Command.QUEUE;
 
-@Router(RESUME)
-public class ResumeRouter extends SwanRouter {
+@Router(QUEUE)
+public class QueueRouter extends SwanRouter {
 
     private final BotState botState;
 
-    @Autowired
-    public ResumeRouter(BotState botState) {
+    public QueueRouter(BotState botState) {
         this.botState = botState;
     }
 
     @Route()
-    public void togglePause(CommandMessage commandMessage, MessageReceivedEvent event) {
-        botState.resume(commandMessage, event);
+    public void queue(CommandMessage commandMessage, MessageReceivedEvent event) {
+        botState.sendQueueInfo(commandMessage, event);
     }
-
 
     @Override
     protected void info(CommandMessage commandMessage, MessageReceivedEvent event) {
-        event.getChannel().sendMessage("Use this command to resume the current track.").queue();
+        event.getChannel().sendMessage("Use this command to display the current queue.").queue();
     }
 }

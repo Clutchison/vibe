@@ -1,4 +1,4 @@
-package com.hutchison.vibe.jda;
+package com.hutchison.vibe.swan.jda;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -18,11 +18,10 @@ import java.util.Set;
 
 import static net.dv8tion.jda.api.requests.GatewayIntent.*;
 import static net.dv8tion.jda.api.utils.cache.CacheFlag.EMOTE;
-import static net.dv8tion.jda.api.utils.cache.CacheFlag.VOICE_STATE;
 
 @Component
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class VibeJDA {
+public class SwanJDA {
     static final Set<GatewayIntent> INTENTS = Set.of(
             GUILD_MESSAGES,
             DIRECT_MESSAGES,
@@ -33,7 +32,7 @@ public class VibeJDA {
     );
     static final boolean jdaEnabled = true;
 
-    final VibeListener listener;
+    final SwanListener listener;
     @Getter
     JDA jda;
 
@@ -41,8 +40,8 @@ public class VibeJDA {
     String botToken;
 
     @Autowired
-    public VibeJDA(VibeListener vibeListener) {
-        this.listener = vibeListener;
+    public SwanJDA(SwanListener swanListener) {
+        this.listener = swanListener;
     }
 
     @PostConstruct

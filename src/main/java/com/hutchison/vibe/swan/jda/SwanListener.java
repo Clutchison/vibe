@@ -1,4 +1,4 @@
-package com.hutchison.vibe.jda;
+package com.hutchison.vibe.swan.jda;
 
 import lombok.extern.log4j.Log4j2;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -9,12 +9,12 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Log4j2
-public class VibeListener extends ListenerAdapter implements EventListener {
+public class SwanListener extends ListenerAdapter implements EventListener {
 
     private final CommandRouter commandRouter;
 
     @Autowired
-    public VibeListener(CommandRouter commandRouter) {
+    public SwanListener(CommandRouter commandRouter) {
         this.commandRouter = commandRouter;
     }
 

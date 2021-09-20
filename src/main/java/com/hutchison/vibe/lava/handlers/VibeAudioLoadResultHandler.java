@@ -18,7 +18,7 @@ public class VibeAudioLoadResultHandler implements AudioLoadResultHandler {
 
     @Override
     public void trackLoaded(AudioTrack audioTrack) {
-        manager.getTrackScheduler().play(audioTrack);
+        manager.getTrackScheduler().queue(audioTrack);
     }
 
     @Override

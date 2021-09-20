@@ -1,4 +1,4 @@
-package com.hutchison.vibe.jda;
+package com.hutchison.vibe.swan.jda;
 
 import lombok.Getter;
 
@@ -11,7 +11,9 @@ public enum Command {
     PLAY("play"),
     PAUSE("pause"),
     RESUME("resume"),
-    STOP("stop")
+    STOP("stop"),
+    QUEUE("queue"),
+    CLEAR("clear")
     ;
 
     @Getter

@@ -1,4 +1,4 @@
-package com.hutchison.vibe.jda;
+package com.hutchison.vibe.swan.jda;
 
 import org.springframework.stereotype.Indexed;
 import org.springframework.stereotype.Service;
