@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.stream.IntStream;
 
+import static com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason.REPLACED;
+
 @Log4j2
 public class TrackScheduler extends AudioEventAdapter {
 
@@ -61,13 +63,32 @@ public class TrackScheduler extends AudioEventAdapter {
     }
 
     public void clearQueue() {
-        this.queue = new ArrayList<>();
+        queue.clear();
         currentTrackIndex = 0;
     }
 
     public void stop() {
         player.stopTrack();
         currentTrackIndex = 0;
+    }
+
+    public boolean back() {
+        if(currentTrackIndex > 0 && queue.size() > 1) {
+            ListIterator<AudioTrack> it = queue.listIterator();
+            queue.set(currentTrackIndex, queue.get(currentTrackIndex).makeClone());
+            currentTrackIndex = it.previousIndex();
+            player.startTrack(it.previous(), false);
+            return true;
+        }
+        return false;
+    }
+
+    public boolean skip() {
+        if(currentTrackIndex < queue.size()) {
+            onTrackEnd(player, player.getPlayingTrack(), REPLACED);
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -91,7 +112,7 @@ public class TrackScheduler extends AudioEventAdapter {
         log.info("Track Ended: " + endReason.name());
         queue.set(currentTrackIndex, track.makeClone());
         ListIterator<AudioTrack> it = queue.listIterator(currentTrackIndex + 1);
-        if(it.hasNext() && endReason.mayStartNext) {
+        if(it.hasNext() && (endReason.mayStartNext || REPLACED.equals(endReason))) {
             currentTrackIndex = it.nextIndex();
             player.playTrack(it.next());
         }

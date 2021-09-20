@@ -13,7 +13,9 @@ public enum Command {
     RESUME("resume"),
     STOP("stop"),
     QUEUE("queue"),
-    CLEAR("clear")
+    CLEAR("clear"),
+    BACK("back"),
+    SKIP("skip")
     ;
 
     @Getter
