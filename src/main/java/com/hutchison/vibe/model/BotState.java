@@ -140,6 +140,24 @@ public class BotState {
         }
     }
 
+    public void back(MessageReceivedEvent event) {
+        Optional<VoiceChannel> channel = getChannel(event);
+        if (channel.isPresent() && vibeAudioManager.getTrackScheduler().back()) {
+            event.getChannel().sendMessage("Playing " + vibeAudioManager.getTrackScheduler().getCurrentTrackTitle()).queue();
+        } else {
+            event.getChannel().sendMessage("Could not go back in queue.").queue();
+        }
+    }
+
+    public void skip(MessageReceivedEvent event) {
+        Optional<VoiceChannel> channel = getChannel(event);
+        if (channel.isPresent() && vibeAudioManager.getTrackScheduler().skip()) {
+            event.getChannel().sendMessage("Playing " + vibeAudioManager.getTrackScheduler().getCurrentTrackTitle()).queue();
+        } else {
+            event.getChannel().sendMessage("Could not skip in queue.").queue();
+        }
+    }
+
     private Optional<VoiceChannel> getChannel(MessageReceivedEvent event) {
         if (event.getMember() == null ||
                 event.getMember().getVoiceState() == null ||

@@ -61,13 +61,33 @@ public class TrackScheduler extends AudioEventAdapter {
     }
 
     public void clearQueue() {
-        this.queue = new ArrayList<>();
+        queue.clear();
         currentTrackIndex = 0;
     }
 
     public void stop() {
         player.stopTrack();
         currentTrackIndex = 0;
+    }
+
+    public boolean back() {
+        if(currentTrackIndex > 0 && queue.size() > 1) {
+            ListIterator<AudioTrack> it = queue.listIterator(currentTrackIndex);
+            player.startTrack(it.previous(), false);
+            return true;
+        }
+        return false;
+    }
+
+    public boolean skip() {
+        if(currentTrackIndex < queue.size() - 1) {
+            ListIterator<AudioTrack> it = queue.listIterator(currentTrackIndex + 1);
+            if(it.hasNext()) {
+                player.startTrack(it.next(), false);
+            }
+            return true;
+        }
+        return false;
     }
 
     @Override
