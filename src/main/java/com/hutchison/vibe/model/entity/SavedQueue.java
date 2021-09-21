@@ -14,7 +14,9 @@ import java.util.List;
 @AllArgsConstructor
 
 @Entity(name = "saved_queue")
-@Table(name = "saved_queue")
+@Table(name = "saved_queue", uniqueConstraints = {
+        @UniqueConstraint(columnNames = { "name", "owner" })
+})
 @Builder
 public class SavedQueue implements Serializable {
 
