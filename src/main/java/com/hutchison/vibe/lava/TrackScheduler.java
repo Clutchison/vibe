@@ -6,6 +6,7 @@ import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
+import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 
@@ -18,9 +19,10 @@ import java.util.stream.IntStream;
 public class TrackScheduler extends AudioEventAdapter {
 
     private final AudioPlayer player;
-    private List<AudioTrack> queue;
     private int currentTrackIndex;
 
+    @Getter
+    private List<AudioTrack> queue;
     @Setter
     private LoopStatus loopStatus;
 

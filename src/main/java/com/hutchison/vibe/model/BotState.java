@@ -4,7 +4,10 @@ import com.hutchison.vibe.lava.LoopStatus;
 import com.hutchison.vibe.lava.TrackScheduler;
 import com.hutchison.vibe.lava.VibeAudioManager;
 import com.hutchison.vibe.lava.handlers.VibeAudioLoadResultHandler;
+import com.hutchison.vibe.model.entity.SavedQueue;
+import com.hutchison.vibe.service.SavedQueueService;
 import com.hutchison.vibe.swan.jda.CommandMessage;
+import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import lombok.extern.log4j.Log4j2;
 import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -16,18 +19,22 @@ import org.springframework.util.StringUtils;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 @Component
 @Log4j2
 public class BotState {
 
     private final VibeAudioManager vibeAudioManager;
+    private final SavedQueueService savedQueueService;
 
     @Autowired
-    public BotState(VibeAudioManager vibeAudioManager) {
+    public BotState(VibeAudioManager vibeAudioManager, SavedQueueService savedQueueService) {
         this.vibeAudioManager = vibeAudioManager;
+        this.savedQueueService = savedQueueService;
     }
 
     public void join(MessageReceivedEvent event) {
@@ -169,6 +176,57 @@ public class BotState {
             event.getChannel().sendMessage("Playing " + vibeAudioManager.getTrackScheduler().getCurrentTrackTitle()).queue();
         } else {
             event.getChannel().sendMessage("Could not skip in queue.").queue();
+        }
+    }
+
+    public void saveCurrentQueue(String queueName, MessageReceivedEvent event) {
+        Optional<VoiceChannel> channel = getChannel(event);
+        if (channel.isPresent() && vibeAudioManager.getTrackScheduler().hasCurrentTrack()) {
+            String username = event.getMember().getUser().getName();
+            List<AudioTrack> queue = vibeAudioManager.getTrackScheduler().getQueue();
+            savedQueueService.createQueue(queueName, username, queue);
+            event.getChannel().sendMessage("Queue of name " + queueName + " saved.").queue();
+        } else {
+            event.getChannel().sendMessage("Could not save queue.").queue();
+        }
+    }
+
+    public void loadQueue(String queueName, MessageReceivedEvent event) {
+        Optional<VoiceChannel> channel = getChannel(event);
+        if (channel.isPresent()) {
+            TrackScheduler trackScheduler = vibeAudioManager.getTrackScheduler();
+            trackScheduler.stop();
+            trackScheduler.clearQueue();
+
+            AudioManager audioManager = event.getGuild().getAudioManager();
+            audioManager.openAudioConnection(channel.get());
+            audioManager.setSendingHandler(vibeAudioManager.getVibeAudioSendHandler());
+
+            String username = event.getMember().getUser().getName();
+            SavedQueue savedQueue = savedQueueService.getSavedQueue(queueName, username);
+
+            List<Future<Void>> loaded = savedQueue.getTracks().stream()
+                    .map(t -> vibeAudioManager.loadItemOrdered("key", t.getLoadId(), new VibeAudioLoadResultHandler(vibeAudioManager)))
+                    .collect(Collectors.toList());
+
+            Instant maxTimeToWait = Instant.now().plus(10, ChronoUnit.MINUTES);
+            while(!loaded.stream().allMatch(Future::isDone)) {
+                if (Instant.now().isAfter(maxTimeToWait)) break;
+            }
+
+            event.getChannel().sendMessage("Queue of name " + queueName + " loaded.").queue();
+        } else {
+            event.getChannel().sendMessage("Could not save queue.").queue();
+        }
+    }
+
+    public void updateSavedQueue(String queueName, String username, MessageReceivedEvent event) {
+        List<AudioTrack> tracks = vibeAudioManager.getTrackScheduler().getQueue();
+        if(savedQueueService.updateSavedQueue(queueName, username, tracks)) {
+            event.getChannel().sendMessage("Sucessfully updated queue of name " + queueName + ".").queue();
+        }
+        else {
+            event.getChannel().sendMessage("Failed to update queue of name " + queueName + ".").queue();
         }
     }
 
