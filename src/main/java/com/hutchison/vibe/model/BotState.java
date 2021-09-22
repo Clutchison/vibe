@@ -179,6 +179,30 @@ public class BotState {
         }
     }
 
+    public void jump(int trackIndex, MessageReceivedEvent event) {
+        TrackScheduler trackScheduler = vibeAudioManager.getTrackScheduler();
+        Optional<VoiceChannel> channel = getChannel(event);
+        if (channel.isPresent() && (trackIndex <= (trackScheduler.getQueue().size() - 1))) {
+            trackScheduler.jump(trackIndex);
+            event.getChannel().sendMessage("Playing " + trackScheduler.getCurrentTrackTitle()).queue();
+        } else {
+            event.getChannel().sendMessage("Could not jump in queue.").queue();
+        }
+    }
+
+    public void remove(int trackIndex, MessageReceivedEvent event) {
+        TrackScheduler trackScheduler = vibeAudioManager.getTrackScheduler();
+        Optional<VoiceChannel> channel = getChannel(event);
+        if (channel.isPresent() && (trackIndex <= (trackScheduler.getQueue().size() - 1))) {
+            trackScheduler.remove(trackIndex);
+            if(trackScheduler.hasCurrentTrack()) {
+                event.getChannel().sendMessage("Playing " + trackScheduler.getCurrentTrackTitle()).queue();
+            }
+        } else {
+            event.getChannel().sendMessage("Could not jump in queue.").queue();
+        }
+    }
+
     public void saveCurrentQueue(String queueName, MessageReceivedEvent event) {
         Optional<VoiceChannel> channel = getChannel(event);
         if (channel.isPresent() && vibeAudioManager.getTrackScheduler().hasCurrentTrack()) {
