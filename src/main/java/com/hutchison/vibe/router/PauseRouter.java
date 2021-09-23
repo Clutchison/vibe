@@ -26,12 +26,7 @@ public class PauseRouter extends SwanRouter {
     }
 
     @Override
-    protected void info(CommandMessage commandMessage, MessageReceivedEvent event) {
-        event.getChannel().sendMessage(getInfoText()).queue();
-    }
-
-    @Override
     public String getInfoText() {
-        return "~pause:\n\tUse this command to pause the current track.";
+        return "~pause:\n\tPause the current track.";
     }
 }

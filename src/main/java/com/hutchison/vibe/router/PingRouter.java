@@ -17,12 +17,7 @@ public class PingRouter extends SwanRouter {
     }
 
     @Override
-    protected void info(CommandMessage commandMessage, MessageReceivedEvent event) {
-        event.getChannel().sendMessage(getInfoText()).queue();
-    }
-
-    @Override
     public String getInfoText() {
-        return "~ping:\n\tUse this command to ping the bot!";
+        return "~ping:\n\tPing the bot!";
     }
 }

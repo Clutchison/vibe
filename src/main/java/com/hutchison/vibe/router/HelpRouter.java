@@ -11,7 +11,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.hutchison.vibe.swan.jda.Command.HELP;
@@ -30,13 +29,8 @@ public class HelpRouter extends SwanRouter implements ApplicationContextAware {
     }
 
     @Override
-    protected void info(CommandMessage commandMessage, MessageReceivedEvent event) {
-        event.getChannel().sendMessage(getInfoText()).queue();
-    }
-
-    @Override
     public String getInfoText() {
-        return "~help:\n\tUse this command to display available commands and their usage.";
+        return "~help:\n\tDisplay available commands and their usage.";
     }
 
     @Override
