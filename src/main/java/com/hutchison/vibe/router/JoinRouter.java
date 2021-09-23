@@ -29,6 +29,11 @@ public class JoinRouter extends SwanRouter {
 
     @Override
     protected void info(CommandMessage commandMessage, MessageReceivedEvent event) {
-        event.getChannel().sendMessage("Use this command to ask the bot to join your voice channel.").queue();
+        event.getChannel().sendMessage(getInfoText()).queue();
+    }
+
+    @Override
+    public String getInfoText() {
+        return "~join:\n\tUse this command to ask the bot to join your voice channel.";
     }
 }

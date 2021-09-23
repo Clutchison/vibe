@@ -25,9 +25,13 @@ public class ResumeRouter extends SwanRouter {
         botState.resume(commandMessage, event);
     }
 
-
     @Override
     protected void info(CommandMessage commandMessage, MessageReceivedEvent event) {
-        event.getChannel().sendMessage("Use this command to resume the current track.").queue();
+        event.getChannel().sendMessage(getInfoText()).queue();
+    }
+
+    @Override
+    public String getInfoText() {
+        return "~resume:\n\tUse this command to resume the current track.";
     }
 }

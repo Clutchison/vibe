@@ -25,6 +25,11 @@ public class QueueRouter extends SwanRouter {
 
     @Override
     protected void info(CommandMessage commandMessage, MessageReceivedEvent event) {
-        event.getChannel().sendMessage("Use this command to display the current queue.").queue();
+        event.getChannel().sendMessage(getInfoText()).queue();
+    }
+
+    @Override
+    public String getInfoText() {
+        return "~queue:\n\tUse this command to display the current queue.";
     }
 }

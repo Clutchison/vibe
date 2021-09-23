@@ -17,7 +17,8 @@ public enum Command {
     BACK("back"),
     SKIP("skip"),
     LOOP("loop"),
-    SAVED_QUEUE("saved-queue")
+    SAVED_QUEUE("saved-queue"),
+    HELP("help")
     ;
 
     @Getter

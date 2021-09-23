@@ -25,6 +25,11 @@ public class ClearRouter extends SwanRouter {
 
     @Override
     protected void info(CommandMessage commandMessage, MessageReceivedEvent event) {
-        event.getChannel().sendMessage("Use this command to clear the contents of the current queue.");
+        event.getChannel().sendMessage(getInfoText()).queue();
+    }
+
+    @Override
+    public String getInfoText() {
+        return "~clear:\n\tUse this command to clear the contents of the current queue.";
     }
 }

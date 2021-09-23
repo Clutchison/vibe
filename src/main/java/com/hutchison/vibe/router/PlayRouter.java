@@ -32,6 +32,11 @@ public class PlayRouter extends SwanRouter {
 
     @Override
     protected void info(CommandMessage commandMessage, MessageReceivedEvent event) {
-        event.getChannel().sendMessage("Use this command to begin playback of a track.").queue();
+        event.getChannel().sendMessage(getInfoText()).queue();
+    }
+
+    @Override
+    public String getInfoText() {
+        return "~play [identifier]:\n\tUse this command to load a track to the queue. If nothing is in the queue, it will begin playback.";
     }
 }

@@ -37,6 +37,11 @@ public class LoopRouter extends SwanRouter {
 
     @Override
     protected void info(CommandMessage commandMessage, MessageReceivedEvent event) {
-        event.getChannel().sendMessage("Use this command to set the loop behavior. {off, track, queue}").queue();
+        event.getChannel().sendMessage(getInfoText()).queue();
+    }
+
+    @Override
+    public String getInfoText() {
+        return "~loop [option]:\n\tUse this command to set the loop behavior. {off, track, queue}";
     }
 }

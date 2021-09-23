@@ -25,4 +25,5 @@ public abstract class SwanRouter {
     }
 
     protected abstract void info(CommandMessage commandMessage, MessageReceivedEvent event);
+    public abstract String getInfoText();
 }
