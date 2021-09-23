@@ -10,6 +10,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
+import javax.annotation.PostConstruct;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
@@ -19,12 +20,10 @@ import static com.hutchison.vibe.swan.jda.Command.HELP;
 public class HelpRouter extends SwanRouter implements ApplicationContextAware {
 
     private ApplicationContext applicationContext;
+    private String helpText;
 
     @Route()
     public void help(CommandMessage commandMessage, MessageReceivedEvent event) {
-        String helpText = Arrays.stream(applicationContext.getBeanNamesForAnnotation(Router.class))
-                .map(name -> (SwanRouter) applicationContext.getBean(name))
-                .map(SwanRouter::getInfoText).collect(Collectors.joining("\n"));
         event.getChannel().sendMessage(new MessageBuilder().appendCodeBlock(helpText, "").build()).queue();
     }
 
@@ -36,5 +35,12 @@ public class HelpRouter extends SwanRouter implements ApplicationContextAware {
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
+    }
+
+    @PostConstruct
+    private void getHelpText() {
+        helpText = Arrays.stream(applicationContext.getBeanNamesForAnnotation(Router.class))
+                .map(name -> (SwanRouter) applicationContext.getBean(name))
+                .map(SwanRouter::getInfoText).collect(Collectors.joining("\n"));
     }
 }
