@@ -21,7 +21,13 @@ public abstract class SwanRouter {
                                 throw new RuntimeException(e);
                             }
                         },
-                        () -> info(commandMessage, event));
+                        () -> {
+                            if(commandMessage.getSubCommand() == null) {
+                                info(commandMessage, event);
+                            } else {
+                                route(commandMessage.reparseAllArgs(), event);
+                            }
+                        });
     }
 
     protected abstract void info(CommandMessage commandMessage, MessageReceivedEvent event);
