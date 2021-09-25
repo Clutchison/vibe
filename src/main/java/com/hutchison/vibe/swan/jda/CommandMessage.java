@@ -1,16 +1,17 @@
 package com.hutchison.vibe.swan.jda;
 
 import lombok.Value;
+import lombok.experimental.NonFinal;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 @Value
 public class CommandMessage {
 
     Command command;
+    @NonFinal
     String subCommand;
     List<String> args;
 
@@ -26,7 +27,7 @@ public class CommandMessage {
             subCommand = split.size() > 0 ?
                     split.remove(0) :
                     "";
-            args = Collections.unmodifiableList(split);
+            args = split;
         }
     }
 
@@ -38,6 +39,12 @@ public class CommandMessage {
             throw new IllegalArgumentException(prefix + "message must start with !");
         if (message.length() == 1)
             throw new IllegalArgumentException(prefix + "message does not contain a command");
+    }
+
+    public CommandMessage reparseAllArgs() {
+        args.add(0, subCommand);
+        subCommand = "";
+        return this;
     }
 
     @Override

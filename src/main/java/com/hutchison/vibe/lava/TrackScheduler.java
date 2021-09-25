@@ -91,10 +91,34 @@ public class TrackScheduler extends AudioEventAdapter {
             ListIterator<AudioTrack> it = queue.listIterator(currentTrackIndex + 1);
             if(it.hasNext()) {
                 player.startTrack(it.next(), false);
+                return true;
             }
+        }
+        return false;
+    }
+
+    public boolean jump(int trackIndex) {
+        ListIterator<AudioTrack> it = queue.listIterator(trackIndex);
+        if(it.hasNext()) {
+            player.startTrack(it.next(), false);
             return true;
         }
         return false;
+    }
+
+    public void remove(int trackIndex) {
+        if(trackIndex > currentTrackIndex) {
+            queue.remove(trackIndex);
+        }
+        else if(trackIndex < currentTrackIndex) {
+            queue.remove(trackIndex);
+            currentTrackIndex--;
+        }
+        else {
+            player.stopTrack();
+            queue.remove(trackIndex);
+            start();
+        }
     }
 
     @Override
@@ -170,10 +194,10 @@ public class TrackScheduler extends AudioEventAdapter {
         IntStream.range(0, queue.size()).forEach(i -> {
             AudioTrackInfo trackInfo = queue.get(i).getInfo();
             if(currentTrackIndex == i) sb.append("*");
-            sb.append(i);
-            sb.append(". ");
+            sb.append(i + 1);
+            sb.append(". Title: ");
             sb.append(trackInfo.title);
-            sb.append(" - ");
+            sb.append(", Author: ");
             sb.append(trackInfo.author);
             sb.append("\n");
         });
