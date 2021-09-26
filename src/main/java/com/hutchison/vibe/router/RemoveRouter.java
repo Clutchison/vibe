@@ -34,7 +34,7 @@ public class RemoveRouter extends SwanRouter {
     }
 
     @Override
-    protected void info(CommandMessage commandMessage, MessageReceivedEvent event) {
-        event.getChannel().sendMessage("Use this command to remove a specifc track from the queue.").queue();
+    public String getInfoText() {
+        return "~remove [trackNumber]:\n\tRemove a specific track from the queue.";
     }
 }

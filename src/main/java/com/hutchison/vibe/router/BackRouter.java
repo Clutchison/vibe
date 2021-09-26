@@ -26,7 +26,7 @@ public class BackRouter extends SwanRouter {
     }
 
     @Override
-    protected void info(CommandMessage commandMessage, MessageReceivedEvent event) {
-        event.getChannel().sendMessage("Use this command to begin playing the previous song in the queue.").queue();
+    public String getInfoText() {
+        return "~back:\n\tBegin playing the previous song in the queue.";
     }
 }

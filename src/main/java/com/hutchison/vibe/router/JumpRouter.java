@@ -34,7 +34,7 @@ public class JumpRouter extends SwanRouter {
     }
 
     @Override
-    protected void info(CommandMessage commandMessage, MessageReceivedEvent event) {
-        event.getChannel().sendMessage("Use this command to jump to a specific track in the queue.").queue();
+    public String getInfoText() {
+        return "~jump [trackNumber]:\n\tJump to a specific track in the queue.";
     }
 }

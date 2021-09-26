@@ -58,9 +58,8 @@ public class SavedQueueRouter extends SwanRouter {
         }
     }
 
-
     @Override
-    protected void info(CommandMessage commandMessage, MessageReceivedEvent event) {
-        event.getChannel().sendMessage("Use this command to interact with a saved queue. {create, load, delete} [name].").queue();
+    public String getInfoText() {
+        return "~saved-queue [option] [name]:\n\tInteract with a saved queue. {create, load, delete}.";
     }
 }

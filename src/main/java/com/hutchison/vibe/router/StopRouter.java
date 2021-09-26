@@ -26,7 +26,7 @@ public class StopRouter extends SwanRouter {
     }
 
     @Override
-    protected void info(CommandMessage commandMessage, MessageReceivedEvent event) {
-        event.getChannel().sendMessage("Use this command to stop the current playing track.").queue();
+    public String getInfoText() {
+        return "~stop:\n\tStop the current playing track.";
     }
 }

@@ -18,6 +18,7 @@ public enum Command {
     SKIP("skip"),
     LOOP("loop"),
     SAVED_QUEUE("saved-queue"),
+    HELP("help"),
     JUMP("jump"),
     REMOVE("remove")
     ;

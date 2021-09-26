@@ -26,7 +26,7 @@ public class SkipRouter extends SwanRouter {
     }
 
     @Override
-    protected void info(CommandMessage commandMessage, MessageReceivedEvent event) {
-        event.getChannel().sendMessage("Use this command to skip to the next track in the queue.").queue();
+    public String getInfoText() {
+        return "~skip:\n\tSkip to the next track in the queue.";
     }
 }

@@ -26,7 +26,7 @@ public class DisconnectRouter extends SwanRouter {
     }
 
     @Override
-    protected void info(CommandMessage commandMessage, MessageReceivedEvent event) {
-        event.getChannel().sendMessage("Use this command to disconnect Vibe from your voice channel.").queue();
+    public String getInfoText() {
+        return "~disconnect:\n\tDisconnect Vibe from your voice channel.";
     }
 }

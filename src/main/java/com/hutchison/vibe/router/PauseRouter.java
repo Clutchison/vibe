@@ -25,9 +25,8 @@ public class PauseRouter extends SwanRouter {
         botState.pause(commandMessage, event);
     }
 
-
     @Override
-    protected void info(CommandMessage commandMessage, MessageReceivedEvent event) {
-        event.getChannel().sendMessage("Use this command to pause/resume the current track.").queue();
+    public String getInfoText() {
+        return "~pause:\n\tPause the current track.";
     }
 }
