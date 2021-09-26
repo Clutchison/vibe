@@ -27,6 +27,6 @@ public class DisconnectRouter extends SwanRouter {
 
     @Override
     public String getInfoText() {
-        return "~disconnect:\n\tDisconnect Vibe from your voice channel.";
+        return "~disconnect, ~d:\n\tDisconnect Vibe from your voice channel.";
     }
 }

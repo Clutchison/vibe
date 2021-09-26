@@ -27,6 +27,6 @@ public class BackRouter extends SwanRouter {
 
     @Override
     public String getInfoText() {
-        return "~back:\n\tBegin playing the previous song in the queue.";
+        return "~back, ~b:\n\tBegin playing the previous song in the queue.";
     }
 }

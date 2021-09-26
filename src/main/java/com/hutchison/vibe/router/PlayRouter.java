@@ -32,6 +32,6 @@ public class PlayRouter extends SwanRouter {
 
     @Override
     public String getInfoText() {
-        return "~play [identifier]:\n\tLoad a track to the queue. If nothing is in the queue, it will begin playback.";
+        return "~play, ~p [identifier]:\n\tLoad a track to the queue. If nothing is in the queue, it will begin playback.";
     }
 }

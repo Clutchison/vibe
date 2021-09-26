@@ -25,6 +25,6 @@ public class QueueRouter extends SwanRouter {
 
     @Override
     public String getInfoText() {
-        return "~queue:\n\tDisplay the current queue.";
+        return "~queue, ~q:\n\tDisplay the current queue.";
     }
 }

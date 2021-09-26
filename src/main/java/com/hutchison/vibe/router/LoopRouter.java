@@ -37,6 +37,6 @@ public class LoopRouter extends SwanRouter {
 
     @Override
     public String getInfoText() {
-        return "~loop [option]:\n\tSet the loop behavior. {off, track, queue}";
+        return "~loop, ~l [option]:\n\tSet the loop behavior. {off, track, queue}";
     }
 }

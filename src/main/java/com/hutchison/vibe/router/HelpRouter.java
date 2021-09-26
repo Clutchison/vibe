@@ -29,7 +29,7 @@ public class HelpRouter extends SwanRouter implements ApplicationContextAware {
 
     @Override
     public String getInfoText() {
-        return "~help:\n\tDisplay available commands and their usage.";
+        return "~help, ~h:\n\tDisplay available commands and their usage.";
     }
 
     @Override
