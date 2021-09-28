@@ -11,8 +11,10 @@ import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @Log4j2
@@ -20,6 +22,7 @@ public class TrackScheduler extends AudioEventAdapter {
 
     private final AudioPlayer player;
     private int currentTrackIndex;
+    private List<AudioTrack> original;
 
     @Getter
     private List<AudioTrack> queue;
@@ -29,6 +32,7 @@ public class TrackScheduler extends AudioEventAdapter {
     public TrackScheduler(AudioPlayer player) {
         this.player = player;
         this.queue = new ArrayList<>();
+        this.original = new ArrayList<>();
         this.loopStatus = LoopStatus.OFF;
     }
 
@@ -65,6 +69,37 @@ public class TrackScheduler extends AudioEventAdapter {
 
     public boolean hasCurrentTrack() {
         return player.getPlayingTrack() != null;
+    }
+
+    public void shuffleQueue() {
+        //Only set original if it is empty, this allows the queue to be shuffled multiple times and still retain original order
+        original = original.isEmpty() ? new ArrayList<>(queue) : original;
+        //If a track is playing, Remove current track before shuffling to ensure current track doesn't end up later in the queue
+        if(player.getPlayingTrack() != null) {
+            AudioTrack currentTrack = queue.remove(currentTrackIndex);
+            Collections.shuffle(queue);
+            queue.add(0, currentTrack);
+            currentTrackIndex = 0;
+        }
+        else {
+            Collections.shuffle(queue);
+        }
+    }
+
+    public void shuffleOff() {
+        //Check if any new tracks have been queued since shuffle began, if so pop them onto end of list
+        List<AudioTrack> newTracks = getAnyNewTracks();
+        queue = new ArrayList<>(original);
+        if(!newTracks.isEmpty()) {
+            queue.addAll(newTracks);
+        }
+        original.clear();
+        currentTrackIndex = queue.indexOf(player.getPlayingTrack());
+    }
+
+    private List<AudioTrack> getAnyNewTracks() {
+        List<String> orginalIds = original.stream().map(AudioTrack::getIdentifier).collect(Collectors.toList());
+        return queue.stream().filter(t -> !orginalIds.contains(t.getIdentifier())).collect(Collectors.toList());
     }
 
     public void clearQueue() {
@@ -167,6 +202,8 @@ public class TrackScheduler extends AudioEventAdapter {
                     if(it.hasNext()) {
                         currentTrackIndex = it.nextIndex();
                         player.playTrack(it.next());
+                    } else {
+                        currentTrackIndex = 0;
                     }
                     break;
             }
@@ -187,6 +224,7 @@ public class TrackScheduler extends AudioEventAdapter {
     public void onTrackStuck(AudioPlayer player, AudioTrack track, long thresholdMs, StackTraceElement[] stackTrace) {
         log.info("Track Stuck");
     }
+    
 
     public String getQueueInfo() {
         if(queue.isEmpty()) return null;

@@ -20,7 +20,8 @@ public enum Command {
     SAVED_QUEUE("saved-queue"),
     HELP("help"),
     JUMP("jump"),
-    REMOVE("remove")
+    REMOVE("remove"),
+    SHUFFLE("shuffle")
     ;
 
     @Getter
