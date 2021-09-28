@@ -29,6 +29,6 @@ public class JoinRouter extends SwanRouter {
 
     @Override
     public String getInfoText() {
-        return "~join:\n\tAsk the bot to join your voice channel.";
+        return "~join, ~j:\n\tAsk the bot to join your voice channel.";
     }
 }

@@ -18,6 +18,6 @@ public class PingRouter extends SwanRouter {
 
     @Override
     public String getInfoText() {
-        return "~ping:\n\tPing the bot!";
+        return "~ping, ~p:\n\tPing the bot!";
     }
 }

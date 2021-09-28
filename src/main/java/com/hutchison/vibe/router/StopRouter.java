@@ -27,6 +27,6 @@ public class StopRouter extends SwanRouter {
 
     @Override
     public String getInfoText() {
-        return "~stop:\n\tStop the current playing track.";
+        return "~stop, ~s:\n\tStop the current playing track.";
     }
 }

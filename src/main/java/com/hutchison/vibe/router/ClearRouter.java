@@ -25,6 +25,6 @@ public class ClearRouter extends SwanRouter {
 
     @Override
     public String getInfoText() {
-        return "~clear:\n\tClear the contents of the current queue.";
+        return "~clear, ~c:\n\tClear the contents of the current queue.";
     }
 }
