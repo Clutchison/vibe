@@ -1,5 +1,6 @@
 package com.hutchison.vibe.model.entity;
 
+import com.hutchison.vibe.exception.UnauthorizedException;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -14,9 +15,7 @@ import java.util.List;
 @AllArgsConstructor
 
 @Entity(name = "saved_queue")
-@Table(name = "saved_queue", uniqueConstraints = {
-        @UniqueConstraint(columnNames = { "name", "owner" })
-})
+@Table(name = "saved_queue")
 @Builder
 public class SavedQueue implements Serializable {
 
@@ -28,10 +27,43 @@ public class SavedQueue implements Serializable {
     @Column(nullable = false, name = "name")
     String name;
 
-    @Column(nullable = false, name ="owner")
-    String owner;
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "saved_queue_id")
+    List<OwnerPermission> ownerPermissions;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "saved_queue_id")
     List<Track> tracks;
+
+    public boolean canRead(Long ownerId) throws UnauthorizedException {
+        return ownerPermissions
+                .stream()
+                .filter(p -> p.getOwnerId().equals(ownerId) && p.isRead())
+                .map(OwnerPermission::isRead)
+                .findFirst().orElseThrow(UnauthorizedException::new);
+    }
+
+    public boolean canDelete(Long ownerId) throws UnauthorizedException {
+        return ownerPermissions
+                .stream()
+                .filter(p -> p.getOwnerId().equals(ownerId) && p.isDelete())
+                .map(OwnerPermission::isDelete)
+                .findFirst().orElseThrow(UnauthorizedException::new);
+    }
+
+    public boolean canUpdate(Long ownerId) throws UnauthorizedException {
+        return ownerPermissions
+                .stream()
+                .filter(p -> p.getOwnerId().equals(ownerId) && p.isUpdate())
+                .map(OwnerPermission::isUpdate)
+                .findFirst().orElseThrow(UnauthorizedException::new);
+    }
+
+    public boolean canShare(Long ownerId) throws UnauthorizedException {
+        return ownerPermissions
+                .stream()
+                .filter(p -> p.getOwnerId().equals(ownerId) && p.isCreator())
+                .map(OwnerPermission::isCreator)
+                .findFirst().orElseThrow(UnauthorizedException::new);
+    }
 }
