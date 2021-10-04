@@ -7,6 +7,7 @@ import lombok.experimental.FieldDefaults;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.List;
+import java.util.function.Predicate;
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @NoArgsConstructor
@@ -35,35 +36,26 @@ public class SavedQueue implements Serializable {
     @JoinColumn(name = "saved_queue_id")
     List<Track> tracks;
 
-    public boolean canRead(Long ownerId) throws UnauthorizedException {
-        return ownerPermissions
-                .stream()
-                .filter(p -> p.getOwnerId().equals(ownerId) && p.isRead())
-                .map(OwnerPermission::isRead)
-                .findFirst().orElseThrow(UnauthorizedException::new);
+    public void canRead(Long ownerId) throws UnauthorizedException {
+        can(p -> p.getOwnerId().equals(ownerId) && p.isRead());
     }
 
-    public boolean canDelete(Long ownerId) throws UnauthorizedException {
-        return ownerPermissions
-                .stream()
-                .filter(p -> p.getOwnerId().equals(ownerId) && p.isDelete())
-                .map(OwnerPermission::isDelete)
-                .findFirst().orElseThrow(UnauthorizedException::new);
+    public void canDelete(Long ownerId) throws UnauthorizedException {
+        can(p -> p.getOwnerId().equals(ownerId) && p.isDelete());
     }
 
-    public boolean canUpdate(Long ownerId) throws UnauthorizedException {
-        return ownerPermissions
-                .stream()
-                .filter(p -> p.getOwnerId().equals(ownerId) && p.isUpdate())
-                .map(OwnerPermission::isUpdate)
-                .findFirst().orElseThrow(UnauthorizedException::new);
+    public void canUpdate(Long ownerId) throws UnauthorizedException {
+        can(p -> p.getOwnerId().equals(ownerId) && p.isUpdate());
     }
 
-    public boolean canShare(Long ownerId) throws UnauthorizedException {
-        return ownerPermissions
+    public void canShare(Long ownerId) throws UnauthorizedException {
+        can(p -> p.getOwnerId().equals(ownerId) && p.isCreator());
+    }
+
+    public void can(Predicate<OwnerPermission> p) throws UnauthorizedException {
+        ownerPermissions
                 .stream()
-                .filter(p -> p.getOwnerId().equals(ownerId) && p.isCreator())
-                .map(OwnerPermission::isCreator)
+                .filter(p)
                 .findFirst().orElseThrow(UnauthorizedException::new);
     }
 }
