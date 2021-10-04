@@ -98,6 +98,26 @@ public class BotState {
         }
     }
 
+    public void shuffle(MessageReceivedEvent event) {
+        Optional<VoiceChannel> channel = getChannel(event);
+        if (channel.isPresent()) {
+            vibeAudioManager.getTrackScheduler().shuffleQueue();
+            event.getChannel().sendMessage("Shuffle on.").queue();
+        } else {
+            event.getChannel().sendMessage("User not in voice channel").queue();
+        }
+    }
+
+    public void shuffleOff(MessageReceivedEvent event) {
+        Optional<VoiceChannel> channel = getChannel(event);
+        if (channel.isPresent()) {
+            vibeAudioManager.getTrackScheduler().shuffleOff();
+            event.getChannel().sendMessage("Shuffle off.").queue();
+        } else {
+            event.getChannel().sendMessage("User not in voice channel").queue();
+        }
+    }
+
     public void start(CommandMessage commandMessage, MessageReceivedEvent event) {
         Optional<VoiceChannel> channel = getChannel(event);
         if (channel.isPresent()) {
