@@ -18,6 +18,9 @@ import java.util.List;
 @Builder
 public class OwnerPermission {
 
+    static final String CHECK = ":white_check_mark:";
+    static final String NO = ":no_entry:";
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(unique = true, nullable = false, name = "owner_permission_id")
@@ -66,5 +69,13 @@ public class OwnerPermission {
     @Override
     public String toString() {
         return "Username: " + username + ", Read: " + read + ", Update: " + update + ", " + "Delete: " + delete + ", Creator: " + creator;
+    }
+
+    public String emojiPrettyPrint() {
+        return "Username: " + username + "\n\t" +
+                "Read: " + (read ? CHECK : NO) + " " +
+                "Update: " + (update ? CHECK : NO) + " " +
+                "Delete: " + (delete ? CHECK : NO) + " " +
+                "Creator: " + (creator ? CHECK : NO);
     }
 }

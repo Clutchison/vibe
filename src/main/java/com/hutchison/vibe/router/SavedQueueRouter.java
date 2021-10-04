@@ -7,7 +7,6 @@ import com.hutchison.vibe.swan.jda.CommandMessage;
 import com.hutchison.vibe.swan.jda.Route;
 import com.hutchison.vibe.swan.jda.Router;
 import com.hutchison.vibe.swan.jda.SwanRouter;
-import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -100,7 +99,7 @@ public class SavedQueueRouter extends SwanRouter {
         String queueName = commandMessage.getArgs().get(0);
         try {
             String queuePerms = savedQueueService.getQueuePerms(queueName, event.getMember().getIdLong());
-            event.getChannel().sendMessage(new MessageBuilder().appendCodeBlock(queuePerms, null).build()).queue();
+            event.getChannel().sendMessage(queuePerms).queue();
         } catch (UnauthorizedException e) {
             event.getChannel().sendMessage("You do not have permission to list the permissions of \"" + queueName + "\".").queue();
         }

@@ -83,11 +83,11 @@ public class SavedQueueService {
 
     public String getQueuePerms(String queueName, Long ownerId) throws UnauthorizedException {
         SavedQueue queue = getSavedQueue(queueName, ownerId);
-        StringBuilder sb = new StringBuilder("Queue \"" + queueName + "\" Permissions:\n");
+        StringBuilder sb = new StringBuilder("Queue \"" + queueName + "\" Permissions:\n\n");
 
         String permInfo = queue.getOwnerPermissions()
                 .stream()
-                .map(OwnerPermission::toString)
+                .map(OwnerPermission::emojiPrettyPrint)
                 .collect(Collectors.joining("\n"));
         sb.append(permInfo);
         return sb.toString();
