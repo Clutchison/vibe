@@ -1,5 +1,6 @@
 package com.hutchison.vibe.model.entity;
 
+import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -32,4 +33,16 @@ public class Track {
 
     @Column(name = "load_id", nullable = false)
     String loadId;
+
+    @ManyToOne
+    @JoinColumn(name = "saved_queue_id")
+    SavedQueue savedQueue;
+
+    public static Track toTrack(AudioTrack t) {
+        return Track.builder()
+                .title(t.getInfo().title)
+                .author(t.getInfo().author)
+                .length(t.getInfo().length)
+                .loadId(t.getIdentifier()).build();
+    }
 }

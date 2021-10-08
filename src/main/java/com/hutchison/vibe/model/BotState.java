@@ -1,5 +1,6 @@
 package com.hutchison.vibe.model;
 
+import com.hutchison.vibe.exception.UnauthorizedException;
 import com.hutchison.vibe.lava.LoopStatus;
 import com.hutchison.vibe.lava.TrackScheduler;
 import com.hutchison.vibe.lava.VibeAudioManager;
@@ -9,12 +10,14 @@ import com.hutchison.vibe.service.SavedQueueService;
 import com.hutchison.vibe.swan.jda.CommandMessage;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import lombok.extern.log4j.Log4j2;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.managers.AudioManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.Instant;
@@ -226,15 +229,16 @@ public class BotState {
     public void saveCurrentQueue(String queueName, MessageReceivedEvent event) {
         Optional<VoiceChannel> channel = getChannel(event);
         if (channel.isPresent() && vibeAudioManager.getTrackScheduler().hasCurrentTrack()) {
-            String username = event.getMember().getUser().getName();
+            User user = event.getMember().getUser();
             List<AudioTrack> queue = vibeAudioManager.getTrackScheduler().getQueue();
-            savedQueueService.createQueue(queueName, username, queue);
+            savedQueueService.createQueue(queueName, user, queue);
             event.getChannel().sendMessage("Queue of name " + queueName + " saved.").queue();
         } else {
             event.getChannel().sendMessage("Could not save queue.").queue();
         }
     }
 
+    @Transactional
     public void loadQueue(String queueName, MessageReceivedEvent event) {
         Optional<VoiceChannel> channel = getChannel(event);
         if (channel.isPresent()) {
@@ -246,31 +250,35 @@ public class BotState {
             audioManager.openAudioConnection(channel.get());
             audioManager.setSendingHandler(vibeAudioManager.getVibeAudioSendHandler());
 
-            String username = event.getMember().getUser().getName();
-            SavedQueue savedQueue = savedQueueService.getSavedQueue(queueName, username);
+            Long userId = event.getMember().getUser().getIdLong();
+            try {
+                SavedQueue savedQueue = savedQueueService.getSavedQueue(queueName, userId);
 
-            List<Future<Void>> loaded = savedQueue.getTracks().stream()
-                    .map(t -> vibeAudioManager.loadItemOrdered("key", t.getLoadId(), new VibeAudioLoadResultHandler(vibeAudioManager)))
-                    .collect(Collectors.toList());
+                List<Future<Void>> loaded = savedQueue.getTracks().stream()
+                        .map(t -> vibeAudioManager.loadItemOrdered("key", t.getLoadId(), new VibeAudioLoadResultHandler(vibeAudioManager)))
+                        .collect(Collectors.toList());
 
-            Instant maxTimeToWait = Instant.now().plus(10, ChronoUnit.MINUTES);
-            while(!loaded.stream().allMatch(Future::isDone)) {
-                if (Instant.now().isAfter(maxTimeToWait)) break;
+                Instant maxTimeToWait = Instant.now().plus(10, ChronoUnit.MINUTES);
+                while(!loaded.stream().allMatch(Future::isDone)) {
+                    if (Instant.now().isAfter(maxTimeToWait)) break;
+                }
+
+                event.getChannel().sendMessage("Queue of name " + queueName + " loaded.").queue();
+            } catch (UnauthorizedException e) {
+                event.getChannel().sendMessage("You do not have permission to load queue \""  + queueName + "\"").queue();
             }
-
-            event.getChannel().sendMessage("Queue of name " + queueName + " loaded.").queue();
         } else {
             event.getChannel().sendMessage("Could not save queue.").queue();
         }
     }
 
-    public void updateSavedQueue(String queueName, String username, MessageReceivedEvent event) {
+    public void updateSavedQueue(String queueName, Long ownerId, MessageReceivedEvent event) {
         List<AudioTrack> tracks = vibeAudioManager.getTrackScheduler().getQueue();
-        if(savedQueueService.updateSavedQueue(queueName, username, tracks)) {
-            event.getChannel().sendMessage("Sucessfully updated queue of name " + queueName + ".").queue();
-        }
-        else {
-            event.getChannel().sendMessage("Failed to update queue of name " + queueName + ".").queue();
+        try {
+            savedQueueService.updateSavedQueue(queueName, ownerId, tracks);
+            event.getChannel().sendMessage("Queue \"" + queueName + "\" updated.").queue();
+        } catch (UnauthorizedException e) {
+            event.getChannel().sendMessage("You do not have permission to update queue \"" + queueName + "\"").queue();
         }
     }
 
