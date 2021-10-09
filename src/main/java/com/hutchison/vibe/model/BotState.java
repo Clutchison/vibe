@@ -1,10 +1,12 @@
 package com.hutchison.vibe.model;
 
+import com.hutchison.vibe.client.youtube.VibeYouTube;
 import com.hutchison.vibe.exception.UnauthorizedException;
 import com.hutchison.vibe.lava.LoopStatus;
 import com.hutchison.vibe.lava.TrackScheduler;
 import com.hutchison.vibe.lava.VibeAudioManager;
 import com.hutchison.vibe.lava.handlers.VibeAudioLoadResultHandler;
+import com.hutchison.vibe.lava.handlers.VibeAudioSearchYouTubeOnNoMatchLoadResultHandler;
 import com.hutchison.vibe.model.entity.SavedQueue;
 import com.hutchison.vibe.service.SavedQueueService;
 import com.hutchison.vibe.swan.jda.CommandMessage;
@@ -33,11 +35,13 @@ public class BotState {
 
     private final VibeAudioManager vibeAudioManager;
     private final SavedQueueService savedQueueService;
+    private final VibeYouTube vibeYouTube;
 
     @Autowired
-    public BotState(VibeAudioManager vibeAudioManager, SavedQueueService savedQueueService) {
+    public BotState(VibeAudioManager vibeAudioManager, SavedQueueService savedQueueService, VibeYouTube vibeYouTube) {
         this.vibeAudioManager = vibeAudioManager;
         this.savedQueueService = savedQueueService;
+        this.vibeYouTube = vibeYouTube;
     }
 
     public void join(MessageReceivedEvent event) {
@@ -69,24 +73,25 @@ public class BotState {
 
     public void play(CommandMessage commandMessage, MessageReceivedEvent event) {
         Optional<VoiceChannel> channel = getChannel(event);
-        if (channel.isPresent()) {
-            AudioManager audioManager = event.getGuild().getAudioManager();
-            try {
-                audioManager.openAudioConnection(channel.get());
-                audioManager.setSendingHandler(vibeAudioManager.getVibeAudioSendHandler());
-                String id = !commandMessage.getArgs().isEmpty() ? commandMessage.getArgs().get(0) : "LpC0SKU6O00"; //Default to one of the best songs of all time!
-                Future<Void> loaded = vibeAudioManager.loadItem(id, new VibeAudioLoadResultHandler(vibeAudioManager));
-                //This while ensures that the given track is loaded when the scheduler attempts to send the Track Title in the response.
-                Instant maxTimeToWait = Instant.now().plus(10, ChronoUnit.MINUTES);
-                while (!loaded.isDone()) {
-                    if (Instant.now().isAfter(maxTimeToWait)) break;
-                }
-                event.getChannel().sendMessage("Queued " + vibeAudioManager.getTrackScheduler().getLastQueuedTrackTitle()).queue();
-            } catch (InsufficientPermissionException ex) {
-                event.getChannel().sendMessage("Vibe does not have permissions to join that channel.").queue();
-            }
-        } else {
+        if (channel.isEmpty()) {
             event.getChannel().sendMessage("User not in voice channel").queue();
+            return;
+        }
+        AudioManager audioManager = event.getGuild().getAudioManager();
+        try {
+            audioManager.openAudioConnection(channel.get());
+            audioManager.setSendingHandler(vibeAudioManager.getVibeAudioSendHandler());
+            // Try and load as if id. If fail, than load first search from yt
+            String id = commandMessage.getArgs().isEmpty() ? "LpC0SKU6O00" : String.join(" ", commandMessage.getArgs()); //Default to one of the best songs of all time!
+            vibeAudioManager.loadItem(id,
+                    new VibeAudioSearchYouTubeOnNoMatchLoadResultHandler(
+                            vibeAudioManager,
+                            event,
+                            commandMessage,
+                            vibeYouTube,
+                            id));
+        } catch (InsufficientPermissionException ex) {
+            event.getChannel().sendMessage("Vibe does not have permissions to join that channel.").queue();
         }
     }
 
@@ -164,7 +169,7 @@ public class BotState {
         Optional<VoiceChannel> channel = getChannel(event);
         if (channel.isPresent()) {
             vibeAudioManager.getTrackScheduler().clearQueue();
-            if(!silent) event.getChannel().sendMessage("Queue cleared Successfully.").queue();
+            if (!silent) event.getChannel().sendMessage("Queue cleared Successfully.").queue();
         } else {
             event.getChannel().sendMessage("User not in voice channel").queue();
         }
@@ -218,7 +223,7 @@ public class BotState {
         Optional<VoiceChannel> channel = getChannel(event);
         if (channel.isPresent() && (trackIndex <= (trackScheduler.getQueue().size() - 1))) {
             trackScheduler.remove(trackIndex);
-            if(trackScheduler.hasCurrentTrack()) {
+            if (trackScheduler.hasCurrentTrack()) {
                 event.getChannel().sendMessage("Playing " + trackScheduler.getCurrentTrackTitle()).queue();
             }
         } else {
@@ -255,17 +260,17 @@ public class BotState {
                 SavedQueue savedQueue = savedQueueService.getSavedQueue(queueName, userId);
 
                 List<Future<Void>> loaded = savedQueue.getTracks().stream()
-                        .map(t -> vibeAudioManager.loadItemOrdered("key", t.getLoadId(), new VibeAudioLoadResultHandler(vibeAudioManager)))
+                        .map(t -> vibeAudioManager.loadItemOrdered("key", t.getLoadId(),
+                                new VibeAudioLoadResultHandler(vibeAudioManager, event)))
                         .collect(Collectors.toList());
-
                 Instant maxTimeToWait = Instant.now().plus(10, ChronoUnit.MINUTES);
-                while(!loaded.stream().allMatch(Future::isDone)) {
+                while (!loaded.stream().allMatch(Future::isDone)) {
                     if (Instant.now().isAfter(maxTimeToWait)) break;
                 }
 
                 event.getChannel().sendMessage("Queue of name " + queueName + " loaded.").queue();
             } catch (UnauthorizedException e) {
-                event.getChannel().sendMessage("You do not have permission to load queue \""  + queueName + "\"").queue();
+                event.getChannel().sendMessage("You do not have permission to load queue \"" + queueName + "\"").queue();
             }
         } else {
             event.getChannel().sendMessage("Could not save queue.").queue();
@@ -282,7 +287,7 @@ public class BotState {
         }
     }
 
-    private Optional<VoiceChannel> getChannel(MessageReceivedEvent event) {
+    public static Optional<VoiceChannel> getChannel(MessageReceivedEvent event) {
         if (event.getMember() == null ||
                 event.getMember().getVoiceState() == null ||
                 event.getMember().getVoiceState().getChannel() == null) {
