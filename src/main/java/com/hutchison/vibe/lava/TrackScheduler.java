@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -41,22 +42,29 @@ public class TrackScheduler extends AudioEventAdapter {
     }
 
     public void start() {
-        if(!queue.isEmpty()) {
+        if (!queue.isEmpty()) {
             player.playTrack(queue.get(currentTrackIndex));
         }
     }
 
     public void queue(AudioTrack track) {
         queue.add(track);
-        if(player.getPlayingTrack() == null) {
+        if (player.getPlayingTrack() == null) {
             player.startTrack(track, false);
         }
     }
 
-    public String getLastQueuedTrackTitle() { return !queue.isEmpty() ? queue.get(queue.size() - 1).getInfo().title : null; }
+    public String getLastQueuedTrackTitle() {
+        return !queue.isEmpty() ? queue.get(queue.size() - 1).getInfo().title : null;
+    }
 
-    public String getCurrentTrackTitle() {
-        return player.getPlayingTrack().getInfo().title;
+    public Optional<String> getCurrentTrackTitle() {
+        return player == null ||
+                player.getPlayingTrack() == null ||
+                player.getPlayingTrack().getInfo() == null ||
+                player.getPlayingTrack().getInfo().title == null ?
+                Optional.empty() :
+                Optional.of(player.getPlayingTrack().getInfo().title);
     }
 
     public void togglePause() {
@@ -75,13 +83,12 @@ public class TrackScheduler extends AudioEventAdapter {
         //Only set original if it is empty, this allows the queue to be shuffled multiple times and still retain original order
         original = original.isEmpty() ? new ArrayList<>(queue) : original;
         //If a track is playing, Remove current track before shuffling to ensure current track doesn't end up later in the queue
-        if(player.getPlayingTrack() != null) {
+        if (player.getPlayingTrack() != null) {
             AudioTrack currentTrack = queue.remove(currentTrackIndex);
             Collections.shuffle(queue);
             queue.add(0, currentTrack);
             currentTrackIndex = 0;
-        }
-        else {
+        } else {
             Collections.shuffle(queue);
         }
     }
@@ -90,7 +97,7 @@ public class TrackScheduler extends AudioEventAdapter {
         //Check if any new tracks have been queued since shuffle began, if so pop them onto end of list
         List<AudioTrack> newTracks = getAnyNewTracks();
         queue = new ArrayList<>(original);
-        if(!newTracks.isEmpty()) {
+        if (!newTracks.isEmpty()) {
             queue.addAll(newTracks);
         }
         original.clear();
@@ -113,7 +120,7 @@ public class TrackScheduler extends AudioEventAdapter {
     }
 
     public boolean back() {
-        if(currentTrackIndex > 0 && queue.size() > 1) {
+        if (currentTrackIndex > 0 && queue.size() > 1) {
             ListIterator<AudioTrack> it = queue.listIterator(currentTrackIndex);
             player.startTrack(it.previous(), false);
             return true;
@@ -122,9 +129,9 @@ public class TrackScheduler extends AudioEventAdapter {
     }
 
     public boolean skip() {
-        if(currentTrackIndex < queue.size() - 1) {
+        if (currentTrackIndex < queue.size() - 1) {
             ListIterator<AudioTrack> it = queue.listIterator(currentTrackIndex + 1);
-            if(it.hasNext()) {
+            if (it.hasNext()) {
                 player.startTrack(it.next(), false);
                 return true;
             }
@@ -134,7 +141,7 @@ public class TrackScheduler extends AudioEventAdapter {
 
     public boolean jump(int trackIndex) {
         ListIterator<AudioTrack> it = queue.listIterator(trackIndex);
-        if(it.hasNext()) {
+        if (it.hasNext()) {
             player.startTrack(it.next(), false);
             return true;
         }
@@ -142,14 +149,12 @@ public class TrackScheduler extends AudioEventAdapter {
     }
 
     public void remove(int trackIndex) {
-        if(trackIndex > currentTrackIndex) {
+        if (trackIndex > currentTrackIndex) {
             queue.remove(trackIndex);
-        }
-        else if(trackIndex < currentTrackIndex) {
+        } else if (trackIndex < currentTrackIndex) {
             queue.remove(trackIndex);
             currentTrackIndex--;
-        }
-        else {
+        } else {
             player.stopTrack();
             queue.remove(trackIndex);
             start();
@@ -178,7 +183,7 @@ public class TrackScheduler extends AudioEventAdapter {
         AudioTrack clone = track.makeClone();
         queue.set(currentTrackIndex, clone);
 
-        if(endReason.mayStartNext) {
+        if (endReason.mayStartNext) {
             ListIterator<AudioTrack> it;
             switch (loopStatus) {
                 case TRACK:
@@ -186,9 +191,9 @@ public class TrackScheduler extends AudioEventAdapter {
                     break;
                 case QUEUE:
                     it = queue.listIterator(currentTrackIndex + 1);
-                    if(!it.hasNext()) {
+                    if (!it.hasNext()) {
                         it = queue.listIterator();
-                        if(it.hasNext()) {
+                        if (it.hasNext()) {
                             currentTrackIndex = it.nextIndex();
                             player.playTrack(it.next());
                         }
@@ -199,7 +204,7 @@ public class TrackScheduler extends AudioEventAdapter {
                     break;
                 case OFF:
                     it = queue.listIterator(currentTrackIndex + 1);
-                    if(it.hasNext()) {
+                    if (it.hasNext()) {
                         currentTrackIndex = it.nextIndex();
                         player.playTrack(it.next());
                     } else {
@@ -224,14 +229,14 @@ public class TrackScheduler extends AudioEventAdapter {
     public void onTrackStuck(AudioPlayer player, AudioTrack track, long thresholdMs, StackTraceElement[] stackTrace) {
         log.info("Track Stuck");
     }
-    
+
 
     public String getQueueInfo() {
-        if(queue.isEmpty()) return null;
+        if (queue.isEmpty()) return null;
         StringBuilder sb = new StringBuilder();
         IntStream.range(0, queue.size()).forEach(i -> {
             AudioTrackInfo trackInfo = queue.get(i).getInfo();
-            if(currentTrackIndex == i) sb.append("*");
+            if (currentTrackIndex == i) sb.append("*");
             sb.append(i + 1);
             sb.append(". Title: ");
             sb.append(trackInfo.title);
