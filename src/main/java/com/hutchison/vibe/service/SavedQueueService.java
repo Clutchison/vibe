@@ -1,5 +1,6 @@
 package com.hutchison.vibe.service;
 
+import com.hutchison.vibe.config.ServerInfo;
 import com.hutchison.vibe.exception.UnauthorizedException;
 import com.hutchison.vibe.model.entity.OwnerPermission;
 import com.hutchison.vibe.model.entity.SavedQueue;
@@ -11,8 +12,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.servlet.ServletContext;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -21,10 +26,12 @@ import java.util.stream.IntStream;
 public class SavedQueueService {
 
     private final SavedQueueRepository savedQueueRepository;
+    private final ServletContext servletContext;
 
     @Autowired
-    public SavedQueueService(SavedQueueRepository savedQueueRepository) {
+    public SavedQueueService(SavedQueueRepository savedQueueRepository, ServletContext servletContext) {
         this.savedQueueRepository = savedQueueRepository;
+        this.servletContext = servletContext;
     }
 
     public void createQueue(String queueName, User owner, List<AudioTrack> tracks) {
@@ -33,6 +40,20 @@ public class SavedQueueService {
                 .name(queueName)
                 .ownerPermissions(OwnerPermission.creatorPermission(owner.getIdLong(), owner.getName()))
                 .tracks(queueTracks)
+                .isPublic(false)
+                .build());
+    }
+
+    public SavedQueue createPublicQueue(User owner, List<AudioTrack> tracks) {
+        List<Track> queueTracks = toTracks(tracks);
+        String uuid = UUID.randomUUID().toString();
+        return savedQueueRepository.save(SavedQueue.builder()
+                .ownerPermissions(OwnerPermission.creatorPermission(owner.getIdLong(), owner.getName()))
+                .name(uuid)
+                .tracks(queueTracks)
+                .isPublic(true)
+                .url(getURL(uuid))
+                .expirationDate(Instant.now().plus(30, ChronoUnit.DAYS))
                 .build());
     }
 
@@ -116,5 +137,10 @@ public class SavedQueueService {
 
     private List<Track> toTracks(List<AudioTrack> tracks) {
         return tracks.stream().map(Track::toTrack).collect(Collectors.toList());
+    }
+
+    private String getURL(String uuid) {
+        String contextPath = servletContext.getContextPath();
+        return "http://" + ServerInfo.getHostname() + ":" + ServerInfo.getPort() + contextPath + "/" + uuid + "/test";
     }
 }

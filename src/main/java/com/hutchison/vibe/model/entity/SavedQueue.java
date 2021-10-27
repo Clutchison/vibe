@@ -6,6 +6,7 @@ import lombok.experimental.FieldDefaults;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -27,6 +28,15 @@ public class SavedQueue implements Serializable {
 
     @Column(nullable = false, name = "name")
     String name;
+
+    @Column
+    boolean isPublic;
+
+    @Column
+    Instant expirationDate;
+
+    @Column
+    String url;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "saved_queue_id")
@@ -52,10 +62,15 @@ public class SavedQueue implements Serializable {
         can(p -> p.getOwnerId().equals(ownerId) && p.isCreator());
     }
 
-    public void can(Predicate<OwnerPermission> p) throws UnauthorizedException {
+    private void can(Predicate<OwnerPermission> p) throws UnauthorizedException {
+        if(isPublic) return;
         ownerPermissions
                 .stream()
                 .filter(p)
                 .findFirst().orElseThrow(UnauthorizedException::new);
+    }
+
+    private boolean isExpired() {
+        return expirationDate.isAfter(Instant.now());
     }
 }

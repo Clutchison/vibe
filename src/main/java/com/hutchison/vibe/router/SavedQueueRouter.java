@@ -94,6 +94,11 @@ public class SavedQueueRouter extends SwanRouter {
         }
     }
 
+    @Route("public")
+    public void createPublicQueue(CommandMessage commandMessage, MessageReceivedEvent event) {
+        botState.createPublicQueue(event.getMember().getIdLong(), event);
+    }
+
     @Route("list-perms")
     public void listSavedQueuePerms(CommandMessage commandMessage, MessageReceivedEvent event) {
         String queueName = commandMessage.getArgs().get(0);
