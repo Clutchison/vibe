@@ -20,14 +20,12 @@ public class PlayRouter extends SwanRouter {
         this.botState = botState;
     }
 
-    @Route("yt")
-    public void play(CommandMessage commandMessage, MessageReceivedEvent event) {
-        botState.play(commandMessage, event);
-    }
-
     @Route()
     public void start(CommandMessage commandMessage, MessageReceivedEvent event) {
-        botState.start(commandMessage, event);
+        if (commandMessage.getArgs().isEmpty())
+            botState.start(commandMessage, event);
+        else
+            botState.play(commandMessage, event);
     }
 
     @Override

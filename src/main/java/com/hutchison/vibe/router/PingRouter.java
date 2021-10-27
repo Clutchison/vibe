@@ -11,6 +11,7 @@ import static com.hutchison.vibe.swan.jda.Command.PING;
 @Router(PING)
 public class PingRouter extends SwanRouter {
 
+
     @Route()
     public void help(CommandMessage commandMessage, MessageReceivedEvent event) {
         event.getChannel().sendMessage("Test").queue();
