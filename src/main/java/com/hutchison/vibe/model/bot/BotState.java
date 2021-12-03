@@ -1,4 +1,4 @@
-package com.hutchison.vibe.model;
+package com.hutchison.vibe.model.bot;
 
 import com.hutchison.vibe.client.youtube.VibeYouTube;
 import com.hutchison.vibe.exception.UnauthorizedException;
@@ -113,6 +113,10 @@ public class BotState {
         } catch (InsufficientPermissionException ex) {
             event.getChannel().sendMessage("Vibe does not have permissions to join that channel.").queue();
         }
+    }
+
+    public void search(CommandMessage commandMessage, MessageReceivedEvent event) {
+
     }
 
     public void setLoop(CommandMessage commandMessage, MessageReceivedEvent event) {

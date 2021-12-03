@@ -19,6 +19,7 @@ public enum Command {
     REMOVE("remove"),
     RESUME("resume"),
     SAVED_QUEUE("saved-queue"),
+    SEARCH("search"),
     SHUFFLE("shuffle"),
     SKIP("skip"),
     STOP("stop", "s")

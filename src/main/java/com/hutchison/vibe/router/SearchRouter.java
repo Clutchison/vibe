@@ -8,25 +8,26 @@ import com.hutchison.vibe.swan.jda.SwanRouter;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static com.hutchison.vibe.swan.jda.Command.SKIP;
+import static com.hutchison.vibe.swan.jda.Command.SEARCH;
 
-@Router(SKIP)
-public class SkipRouter extends SwanRouter {
+@Router(SEARCH)
+public class SearchRouter extends SwanRouter {
 
     private final BotState botState;
 
     @Autowired
-    public SkipRouter(BotState botState) {
+    public SearchRouter(BotState botState) {
         this.botState = botState;
     }
 
     @Route()
-    public void skip(CommandMessage commandMessage, MessageReceivedEvent event) {
-        botState.skip(event);
+    public void search(CommandMessage commandMessage, MessageReceivedEvent event) {
+        event.getChannel().sendMessage("Not yet implemented.").queue();
+//            botState.search(commandMessage, event);
     }
 
     @Override
     public String getInfoText() {
-        return "~skip:\n\tSkip to the next track in the queue.";
+        return "~search [identifier]:\n\tSearch YouTube for a song, then choose the number from the returned list to play.";
     }
 }

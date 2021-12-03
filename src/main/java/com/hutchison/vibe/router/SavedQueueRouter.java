@@ -1,7 +1,7 @@
 package com.hutchison.vibe.router;
 
 import com.hutchison.vibe.exception.UnauthorizedException;
-import com.hutchison.vibe.model.BotState;
+import com.hutchison.vibe.model.bot.BotState;
 import com.hutchison.vibe.service.SavedQueueService;
 import com.hutchison.vibe.swan.jda.CommandMessage;
 import com.hutchison.vibe.swan.jda.Route;
