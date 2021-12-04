@@ -1,5 +1,6 @@
 package com.hutchison.vibe.router;
 
+import com.hutchison.vibe.model.bot.BotManager;
 import com.hutchison.vibe.swan.jda.CommandMessage;
 import com.hutchison.vibe.swan.jda.Route;
 import com.hutchison.vibe.swan.jda.Router;
@@ -17,10 +18,14 @@ import java.util.stream.Collectors;
 import static com.hutchison.vibe.swan.jda.Command.HELP;
 
 @Router(HELP)
-public class HelpRouter extends SwanRouter implements ApplicationContextAware {
+public class HelpRouter extends VibeRouter implements ApplicationContextAware {
 
     private ApplicationContext applicationContext;
     private String helpText;
+
+    protected HelpRouter(BotManager botManager) {
+        super(botManager);
+    }
 
     @Route()
     public void help(CommandMessage commandMessage, MessageReceivedEvent event) {

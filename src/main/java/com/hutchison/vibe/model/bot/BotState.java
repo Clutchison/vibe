@@ -1,4 +1,4 @@
-package com.hutchison.vibe.model;
+package com.hutchison.vibe.model.bot;
 
 import com.hutchison.vibe.client.youtube.VibeYouTube;
 import com.hutchison.vibe.exception.UnauthorizedException;
@@ -17,8 +17,6 @@ import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.managers.AudioManager;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
@@ -32,7 +30,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
-@Component
 @Log4j2
 public class BotState {
 
@@ -40,7 +37,6 @@ public class BotState {
     private final SavedQueueService savedQueueService;
     private final VibeYouTube vibeYouTube;
 
-    @Autowired
     public BotState(VibeAudioManager vibeAudioManager, SavedQueueService savedQueueService, VibeYouTube vibeYouTube) {
         this.vibeAudioManager = vibeAudioManager;
         this.savedQueueService = savedQueueService;
@@ -146,7 +142,7 @@ public class BotState {
         }
     }
 
-    public void start(CommandMessage commandMessage, MessageReceivedEvent event) {
+    public void start(MessageReceivedEvent event) {
         Optional<VoiceChannel> channel = getChannel(event);
         if (channel.isPresent()) {
             AudioManager audioManager = event.getGuild().getAudioManager();
@@ -155,7 +151,7 @@ public class BotState {
                 audioManager.setSendingHandler(vibeAudioManager.getVibeAudioSendHandler());
                 vibeAudioManager.getTrackScheduler().start();
                 event.getChannel().sendMessage(
-                        playingTrackText(vibeAudioManager.getTrackScheduler().getCurrentTrackTitle())).queue();
+                        playingTrackText(vibeAudioManager.getTrackScheduler())).queue();
             } catch (InsufficientPermissionException ex) {
                 event.getChannel().sendMessage("Vibe does not have permissions to join that channel.").queue();
             }
@@ -164,7 +160,7 @@ public class BotState {
         }
     }
 
-    public void stop(CommandMessage commandMessage, MessageReceivedEvent event) {
+    public void stop(MessageReceivedEvent event) {
         if (vibeAudioManager.getTrackScheduler().hasCurrentTrack()) {
             vibeAudioManager.getTrackScheduler().stop();
         } else {
@@ -172,14 +168,14 @@ public class BotState {
         }
     }
 
-    public void pause(CommandMessage commandMessage, MessageReceivedEvent event) {
+    public void pause() {
         TrackScheduler scheduler = vibeAudioManager.getTrackScheduler();
         if (!scheduler.hasCurrentTrack()) return;
         if (scheduler.isPaused()) return;
         scheduler.togglePause();
     }
 
-    public void resume(CommandMessage commandMessage, MessageReceivedEvent event) {
+    public void resume() {
         TrackScheduler scheduler = vibeAudioManager.getTrackScheduler();
         if (!scheduler.hasCurrentTrack()) return;
         if (!scheduler.isPaused()) return;
@@ -200,7 +196,7 @@ public class BotState {
         clearQueue(event, false);
     }
 
-    public void sendQueueInfo(CommandMessage commandMessage, MessageReceivedEvent event) {
+    public void sendQueueInfo(MessageReceivedEvent event) {
         Optional<VoiceChannel> channel = getChannel(event);
         String queueInfo = vibeAudioManager.getTrackScheduler().getQueueInfo();
         if (channel.isPresent() && queueInfo != null) {
@@ -214,7 +210,7 @@ public class BotState {
         Optional<VoiceChannel> channel = getChannel(event);
         if (channel.isPresent() && vibeAudioManager.getTrackScheduler().back()) {
             event.getChannel().sendMessage(
-                    playingTrackText(vibeAudioManager.getTrackScheduler().getCurrentTrackTitle())).queue();
+                    playingTrackText(vibeAudioManager.getTrackScheduler())).queue();
         } else {
             event.getChannel().sendMessage("Could not go back in queue.").queue();
         }
@@ -224,7 +220,7 @@ public class BotState {
         Optional<VoiceChannel> channel = getChannel(event);
         if (channel.isPresent() && vibeAudioManager.getTrackScheduler().skip()) {
             event.getChannel().sendMessage(
-                    playingTrackText(vibeAudioManager.getTrackScheduler().getCurrentTrackTitle())).queue();
+                    playingTrackText(vibeAudioManager.getTrackScheduler())).queue();
         } else {
             event.getChannel().sendMessage("Could not skip in queue.").queue();
         }
@@ -236,7 +232,7 @@ public class BotState {
         if (channel.isPresent() && (trackIndex <= (trackScheduler.getQueue().size() - 1))) {
             trackScheduler.jump(trackIndex);
             event.getChannel().sendMessage(
-                    playingTrackText(trackScheduler.getCurrentTrackTitle())).queue();
+                    playingTrackText(trackScheduler)).queue();
         } else {
             event.getChannel().sendMessage("Could not jump in queue.").queue();
         }
@@ -248,7 +244,7 @@ public class BotState {
         if (channel.isPresent() && (trackIndex <= (trackScheduler.getQueue().size() - 1))) {
             trackScheduler.remove(trackIndex);
             if (trackScheduler.hasCurrentTrack()) {
-                event.getChannel().sendMessage(playingTrackText(trackScheduler.getCurrentTrackTitle())).queue();
+                event.getChannel().sendMessage(playingTrackText(trackScheduler)).queue();
             }
         } else {
             event.getChannel().sendMessage("Could not jump in queue.").queue();
@@ -321,9 +317,7 @@ public class BotState {
         }
     }
 
-    private String playingTrackText(Optional<String> currentTrackTitle) {
-        return currentTrackTitle.isPresent() ?
-                playingTrackText(currentTrackTitle) :
-                "No track playing.";
+    private String playingTrackText(TrackScheduler trackScheduler) {
+        return trackScheduler.getCurrentTrackTitle().orElse("No track playing.");
     }
 }

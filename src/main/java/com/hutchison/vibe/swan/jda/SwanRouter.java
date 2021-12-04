@@ -25,7 +25,7 @@ public abstract class SwanRouter {
                             }
                         },
                         () -> {
-                            if(commandMessage.getSubCommand() == null) {
+                            if (commandMessage.getSubCommand() == null) {
                                 info(commandMessage, event);
                             } else {
                                 route(commandMessage.reparseAllArgs(), event);
@@ -37,7 +37,7 @@ public abstract class SwanRouter {
         String[] infoTxtSplit = getInfoText().split("\t");
         String infoText = infoTxtSplit[0] + "\t" + USE_COMMAND_TO + " " + StringUtils.uncapitalize(infoTxtSplit[1]);
         event.getChannel().sendMessage(infoText).queue();
-    };
+    }
 
     public abstract String getInfoText();
 }
