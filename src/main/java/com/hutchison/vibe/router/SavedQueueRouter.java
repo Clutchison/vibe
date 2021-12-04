@@ -1,12 +1,12 @@
 package com.hutchison.vibe.router;
 
 import com.hutchison.vibe.exception.UnauthorizedException;
-import com.hutchison.vibe.model.BotState;
+import com.hutchison.vibe.model.bot.BotManager;
 import com.hutchison.vibe.service.SavedQueueService;
 import com.hutchison.vibe.swan.jda.CommandMessage;
 import com.hutchison.vibe.swan.jda.Route;
 import com.hutchison.vibe.swan.jda.Router;
-import com.hutchison.vibe.swan.jda.SwanRouter;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,24 +17,22 @@ import java.util.stream.Collectors;
 import static com.hutchison.vibe.swan.jda.Command.SAVED_QUEUE;
 
 @Router(SAVED_QUEUE)
-public class SavedQueueRouter extends SwanRouter {
+public class SavedQueueRouter extends VibeRouter {
 
-    private final BotState botState;
     private final SavedQueueService savedQueueService;
 
     @Autowired
-    public SavedQueueRouter(BotState botState, SavedQueueService savedQueueService) {
-        this.botState = botState;
+    public SavedQueueRouter(BotManager botManager, SavedQueueService savedQueueService) {
+        super(botManager);
         this.savedQueueService = savedQueueService;
     }
 
     @Route("create")
     public void createSavedQueue(CommandMessage commandMessage, MessageReceivedEvent event) {
         String queueName = commandMessage.getArgs().get(0);
-        if(savedQueueService.exists(queueName)) {
-            botState.saveCurrentQueue(queueName, event);
-        }
-        else {
+        if (savedQueueService.exists(queueName)) {
+            getBot(event).saveCurrentQueue(queueName, event);
+        } else {
             event.getChannel().sendMessage("A queue with this name already exists.").queue();
         }
     }
@@ -42,10 +40,9 @@ public class SavedQueueRouter extends SwanRouter {
     @Route("load")
     public void loadSavedQueue(CommandMessage commandMessage, MessageReceivedEvent event) {
         String queueName = commandMessage.getArgs().get(0);
-        if(savedQueueService.exists(queueName)) {
-            botState.loadQueue(queueName, event);
-        }
-        else {
+        if (savedQueueService.exists(queueName)) {
+            getBot(event).loadQueue(queueName, event);
+        } else {
             event.getChannel().sendMessage("You don't own a queue named " + queueName + ".").queue();
         }
     }
@@ -54,10 +51,9 @@ public class SavedQueueRouter extends SwanRouter {
     public void updateSavedQueue(CommandMessage commandMessage, MessageReceivedEvent event) {
         String queueName = commandMessage.getArgs().get(0);
         Long userId = event.getMember().getUser().getIdLong();
-        if(savedQueueService.exists(queueName)) {
-            botState.updateSavedQueue(queueName, userId, event);
-        }
-        else {
+        if (savedQueueService.exists(queueName)) {
+            getBot(event).updateSavedQueue(queueName, userId, event);
+        } else {
             event.getChannel().sendMessage("You don't own a queue named " + queueName + ".").queue();
         }
     }
@@ -67,11 +63,10 @@ public class SavedQueueRouter extends SwanRouter {
         String queueName = commandMessage.getArgs().get(0);
         Long ownerId = event.getMember().getUser().getIdLong();
         try {
-            if(savedQueueService.exists(queueName)) {
+            if (savedQueueService.exists(queueName)) {
                 savedQueueService.deleteSavedQueue(queueName, ownerId);
                 event.getChannel().sendMessage("Successfully deleted queue of name " + queueName + ".").queue();
-            }
-            else {
+            } else {
                 event.getChannel().sendMessage("You don't own a queue named " + queueName + ".").queue();
             }
         } catch (UnauthorizedException e) {
@@ -83,7 +78,7 @@ public class SavedQueueRouter extends SwanRouter {
     public void shareSavedQueue(CommandMessage commandMessage, MessageReceivedEvent event) {
         List<User> mentions = event.getMessage().getMentionedMembers()
                 .stream()
-                .map(m -> m.getUser())
+                .map(Member::getUser)
                 .collect(Collectors.toList());
         String queueName = commandMessage.getArgs().get(0);
         try {
@@ -110,7 +105,7 @@ public class SavedQueueRouter extends SwanRouter {
         String queueName = commandMessage.getArgs().get(0);
         List<User> mentions = event.getMessage().getMentionedMembers()
                 .stream()
-                .map(m -> m.getUser())
+                .map(Member::getUser)
                 .collect(Collectors.toList());
         String perms = commandMessage.getArgs().get(1);
 

@@ -5,11 +5,9 @@ import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers;
 import lombok.Getter;
-import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 
-@Component
 public class VibeAudioManager extends DefaultAudioPlayerManager {
 
     private final AudioPlayer player;
@@ -23,6 +21,7 @@ public class VibeAudioManager extends DefaultAudioPlayerManager {
         this.trackScheduler = new TrackScheduler(this.player);
         this.vibeAudioSendHandler = new VibeAudioSendHandler(this.player);
         this.player.addListener(trackScheduler);
+        registerAndConfig();
     }
 
     @PostConstruct
