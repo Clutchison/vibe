@@ -31,13 +31,13 @@ import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 @Log4j2
-public class BotState {
+public class Bot {
 
     private final VibeAudioManager vibeAudioManager;
     private final SavedQueueService savedQueueService;
     private final VibeYouTube vibeYouTube;
 
-    public BotState(VibeAudioManager vibeAudioManager, SavedQueueService savedQueueService, VibeYouTube vibeYouTube) {
+    public Bot(VibeAudioManager vibeAudioManager, SavedQueueService savedQueueService, VibeYouTube vibeYouTube) {
         this.vibeAudioManager = vibeAudioManager;
         this.savedQueueService = savedQueueService;
         this.vibeYouTube = vibeYouTube;

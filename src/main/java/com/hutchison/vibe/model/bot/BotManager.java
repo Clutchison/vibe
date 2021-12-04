@@ -14,7 +14,7 @@ public class BotManager {
 
     private final SavedQueueService savedQueueService;
     private final VibeYouTube vibeYouTube;
-    private final Map<Long, BotState> bots;
+    private final Map<Long, Bot> bots;
 
     @Autowired
     public BotManager(SavedQueueService savedQueueService, VibeYouTube vibeYouTube) {
@@ -23,16 +23,16 @@ public class BotManager {
         bots = new HashMap<>();
     }
 
-    public BotState getBot(Long guildId) {
-        BotState savedBot = bots.get(guildId);
+    public Bot getBot(Long guildId) {
+        Bot savedBot = bots.get(guildId);
         if (savedBot != null) return savedBot;
 
-        BotState newBot = newBot();
+        Bot newBot = newBot();
         bots.put(guildId, newBot);
         return newBot;
     }
 
-    private BotState newBot() {
-        return new BotState(new VibeAudioManager(), savedQueueService, vibeYouTube);
+    private Bot newBot() {
+        return new Bot(new VibeAudioManager(), savedQueueService, vibeYouTube);
     }
 }

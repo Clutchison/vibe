@@ -1,7 +1,7 @@
 package com.hutchison.vibe.router;
 
 import com.hutchison.vibe.model.bot.BotManager;
-import com.hutchison.vibe.model.bot.BotState;
+import com.hutchison.vibe.model.bot.Bot;
 import com.hutchison.vibe.swan.jda.SwanRouter;
 import lombok.extern.log4j.Log4j2;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -15,7 +15,7 @@ public abstract class VibeRouter extends SwanRouter {
         this.botManager = botManager;
     }
 
-    public BotState getBot(MessageReceivedEvent event) {
+    public Bot getBot(MessageReceivedEvent event) {
         return botManager.getBot(event.getGuild().getIdLong());
     }
 }
