@@ -1,6 +1,7 @@
 package com.hutchison.vibe.lava.handlers;
 
 import com.hutchison.vibe.lava.VibeAudioManager;
+import com.hutchison.vibe.model.queue.QueueResponse;
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
@@ -18,16 +19,32 @@ public class VibeAudioLoadResultHandler implements AudioLoadResultHandler {
     @Getter
     private boolean noMatches;
 
+    private final QueueResponse queueResponse;
+    private final String searchId;
+
     public VibeAudioLoadResultHandler(VibeAudioManager manager, MessageReceivedEvent event) {
+        this(manager, event, null, null);
+    }
+
+    public VibeAudioLoadResultHandler(VibeAudioManager manager,
+                                      MessageReceivedEvent event,
+                                      QueueResponse queueResponse,
+                                      String searchId) {
         this.manager = manager;
         this.event = event;
         this.noMatches = false;
+        this.queueResponse = queueResponse;
+        this.searchId = searchId;
     }
 
     @Override
     public void trackLoaded(AudioTrack audioTrack) {
         manager.getTrackScheduler().queue(audioTrack);
-        event.getChannel().sendMessage("Successfully loaded " + audioTrack.getInfo().title).queue();
+        if (queueResponse == null) {
+            event.getChannel().sendMessage("Successfully loaded " + audioTrack.getInfo().title).queue();
+        } else {
+            queueResponse.trackLoaded(searchId, audioTrack.getInfo().title);
+        }
     }
 
     @Override
@@ -44,6 +61,11 @@ public class VibeAudioLoadResultHandler implements AudioLoadResultHandler {
     @Override
     public void loadFailed(FriendlyException e) {
         log.error("Load Failed", e);
-        event.getChannel().sendMessage("Failed to load track").queue();
+        String reason = "Failed to load track.";
+        if (queueResponse == null) {
+            event.getChannel().sendMessage(reason).queue();
+        } else {
+            queueResponse.trackFailed(searchId, reason);
+        }
     }
 }

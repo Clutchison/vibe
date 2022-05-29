@@ -7,8 +7,10 @@ import com.hutchison.vibe.lava.TrackScheduler;
 import com.hutchison.vibe.lava.VibeAudioManager;
 import com.hutchison.vibe.lava.handlers.VibeAudioLoadResultHandler;
 import com.hutchison.vibe.model.entity.SavedQueue;
+import com.hutchison.vibe.model.queue.QueueResponse;
 import com.hutchison.vibe.model.youtube.YouTubeSearchResult;
 import com.hutchison.vibe.service.SavedQueueService;
+import com.hutchison.vibe.spotify.SpotifyLinkConverter;
 import com.hutchison.vibe.swan.jda.CommandMessage;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import lombok.extern.log4j.Log4j2;
@@ -17,13 +19,17 @@ import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.managers.AudioManager;
+import org.apache.hc.core5.http.ParseException;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -36,11 +42,16 @@ public class Bot {
     private final VibeAudioManager vibeAudioManager;
     private final SavedQueueService savedQueueService;
     private final VibeYouTube vibeYouTube;
+    private final SpotifyLinkConverter spotifyLinkConverter;
 
-    public Bot(VibeAudioManager vibeAudioManager, SavedQueueService savedQueueService, VibeYouTube vibeYouTube) {
+    public Bot(VibeAudioManager vibeAudioManager,
+               SavedQueueService savedQueueService,
+               VibeYouTube vibeYouTube,
+               SpotifyLinkConverter spotifyLinkConverter) {
         this.vibeAudioManager = vibeAudioManager;
         this.savedQueueService = savedQueueService;
         this.vibeYouTube = vibeYouTube;
+        this.spotifyLinkConverter = spotifyLinkConverter;
     }
 
     public void join(MessageReceivedEvent event) {
@@ -80,34 +91,85 @@ public class Bot {
         try {
             audioManager.openAudioConnection(channel.get());
             audioManager.setSendingHandler(vibeAudioManager.getVibeAudioSendHandler());
-            String id = commandMessage.getArgs().isEmpty() ? "LpC0SKU6O00" : String.join(" ", commandMessage.getArgs()); //Default to one of the best songs of all time!
-            VibeAudioLoadResultHandler resultHandler = new VibeAudioLoadResultHandler(vibeAudioManager, event);
-            Future<Void> loaded = vibeAudioManager.loadItem(id, resultHandler);
-            Instant maxTimeToWait = Instant.now().plus(10, ChronoUnit.SECONDS);
-            while (!loaded.isDone()) {
-                if (Instant.now().isAfter(maxTimeToWait)) break;
-            }
-            if (resultHandler.isNoMatches()) {
-                try {
-                    List<YouTubeSearchResult> search = vibeYouTube.search(id);
-                    if (search.size() < 1) {
-                        event.getChannel().sendMessage("No search results for query: " + id).queue();
-                    } else {
-                        event.getChannel().sendMessage("Loading " + search.get(0).getName() + "...").queue();
-                        try {
-                            String newId = search.get(0).getId();
-                            vibeAudioManager.loadItem(newId,
-                                    new VibeAudioLoadResultHandler(vibeAudioManager, event)).get();
-                        } catch (InterruptedException | ExecutionException e) {
-                            event.getChannel().sendMessage("Something went wrong playing the track.").queue();
-                        }
-                    }
-                } catch (GeneralSecurityException | IOException e) {
-                    event.getChannel().sendMessage("Unable to search youtube with query: " + id).queue();
-                }
+            List<String> ids = calculateIds(commandMessage);
+            if (ids.size() == 1) {
+                queueSingleTrack(ids.get(0), event);
+            } else {
+                queueMultipleTracks(ids, event);
             }
         } catch (InsufficientPermissionException ex) {
             event.getChannel().sendMessage("Vibe does not have permissions to join that channel.").queue();
+        }
+    }
+
+    private void queueSingleTrack(String id, MessageReceivedEvent event) {
+        VibeAudioLoadResultHandler resultHandler = new VibeAudioLoadResultHandler(vibeAudioManager, event);
+        Future<Void> loaded = vibeAudioManager.loadItem(id, resultHandler);
+        Instant maxTimeToWait = Instant.now().plus(10, ChronoUnit.SECONDS);
+        while (!loaded.isDone()) {
+            if (Instant.now().isAfter(maxTimeToWait)) break;
+        }
+        if (resultHandler.isNoMatches()) {
+            try {
+                List<YouTubeSearchResult> search = vibeYouTube.search(id);
+                if (search.size() < 1) {
+                    event.getChannel().sendMessage("No search results for query: " + id).queue();
+                } else {
+                    event.getChannel().sendMessage("Loading " + search.get(0).getName() + "...").queue();
+                    String newId = search.get(0).getId();
+                    try {
+                        vibeAudioManager.loadItem(newId,
+                                new VibeAudioLoadResultHandler(vibeAudioManager, event)).get();
+                    } catch (InterruptedException | ExecutionException e) {
+                        event.getChannel().sendMessage("Something went wrong playing the track: " + newId).queue();
+                    }
+                }
+            } catch (GeneralSecurityException | IOException e) {
+                event.getChannel().sendMessage("Unable to search youtube with query: " + id).queue();
+            }
+        }
+    }
+
+    private void queueMultipleTracks(List<String> ids, MessageReceivedEvent event) {
+        QueueResponse queueResponse = new QueueResponse(ids, event.getChannel());
+        ids.forEach(id -> {
+            try {
+                List<YouTubeSearchResult> youtubeSearchResult = vibeYouTube.search(id);
+                if (youtubeSearchResult.size() < 1) {
+                    queueResponse.trackFailed(id, "No search results for query.");
+                } else {
+                    String newId = youtubeSearchResult.get(0).getId();
+                    try {
+                        vibeAudioManager.loadItem(newId,
+                                        new VibeAudioLoadResultHandler(vibeAudioManager,
+                                                event,
+                                                queueResponse,
+                                                id))
+                                .get();
+                    } catch (InterruptedException | ExecutionException e) {
+                        queueResponse.trackFailed(id, "Something went wrong playing the track: ");
+                    }
+                }
+            } catch (GeneralSecurityException | IOException e) {
+                queueResponse.trackFailed(id, "Unable to search youtube with query. ");
+            }
+        });
+    }
+
+    @NotNull
+    private List<String> calculateIds(CommandMessage commandMessage) {
+        String link = String.join(" ", commandMessage.getArgs());
+        if (SpotifyLinkConverter.isSpotifyLink(link)) {
+            try {
+                return spotifyLinkConverter.convert(link);
+            } catch (ParseException | SpotifyWebApiException | IOException e) {
+                e.printStackTrace();
+            }
+            return Collections.singletonList(
+                    commandMessage.getArgs().isEmpty() ? "LpC0SKU6O00" : link);
+        } else {
+            return Collections.singletonList(
+                    commandMessage.getArgs().isEmpty() ? "LpC0SKU6O00" : link);
         }
     }
 
@@ -198,9 +260,9 @@ public class Bot {
 
     public void sendQueueInfo(MessageReceivedEvent event) {
         Optional<VoiceChannel> channel = getChannel(event);
-        String queueInfo = vibeAudioManager.getTrackScheduler().getQueueInfo();
+        List<String> queueInfo = vibeAudioManager.getTrackScheduler().getQueueInfo();
         if (channel.isPresent() && queueInfo != null) {
-            event.getChannel().sendMessage(queueInfo).queue();
+            queueInfo.forEach(qi -> event.getChannel().sendMessage(qi).queue());
         } else {
             event.getChannel().sendMessage("Queue is already empty.").queue();
         }

@@ -20,8 +20,8 @@ public enum Command {
     RESUME("resume"),
     SAVED_QUEUE("saved-queue"),
     SHUFFLE("shuffle"),
-    SKIP("skip"),
-    STOP("stop", "s")
+    SKIP("skip", "s"),
+    STOP("stop")
     ;
 
     @Getter
