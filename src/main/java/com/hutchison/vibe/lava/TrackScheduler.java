@@ -10,11 +10,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Optional;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -24,6 +21,7 @@ public class TrackScheduler extends AudioEventAdapter {
     private final AudioPlayer player;
     private int currentTrackIndex;
     private List<AudioTrack> original;
+    private static final int MAX_MESSAGE_LENGTH = 1950;
 
     @Getter
     private List<AudioTrack> queue;
@@ -230,20 +228,26 @@ public class TrackScheduler extends AudioEventAdapter {
         log.info("Track Stuck");
     }
 
-
-    public String getQueueInfo() {
+    public List<String> getQueueInfo() {
         if (queue.isEmpty()) return null;
-        StringBuilder sb = new StringBuilder();
+        Map<Integer, List<String>> stringMap = new HashMap<>();
+        AtomicInteger charTotal = new AtomicInteger();
         IntStream.range(0, queue.size()).forEach(i -> {
+            StringBuilder sb = new StringBuilder();
             AudioTrackInfo trackInfo = queue.get(i).getInfo();
-            if (currentTrackIndex == i) sb.append("*");
+            if (currentTrackIndex == i) sb.append("==> ");
             sb.append(i + 1);
-            sb.append(". Title: ");
+            sb.append(". **Title:** ");
             sb.append(trackInfo.title);
-            sb.append(", Author: ");
+            sb.append(", **Author:** ");
             sb.append(trackInfo.author);
-            sb.append("\n");
+            String line = sb.toString();
+            charTotal.addAndGet(line.length());
+            stringMap.computeIfAbsent(charTotal.get() / MAX_MESSAGE_LENGTH, s -> new ArrayList<>())
+                    .add(line);
         });
-        return sb.toString();
+        return IntStream.range(0, stringMap.keySet().size())
+                .mapToObj(i -> String.join("\n", stringMap.get(i)))
+                .collect(Collectors.toList());
     }
 }
